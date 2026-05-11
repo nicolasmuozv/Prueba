@@ -453,7 +453,7 @@ function deleteTx(id) {
 function clp(n) {
   if (n === null || n === undefined) return '—';
   const abs = Math.abs(n);
-  const s = '$ ' + abs.toLocaleString('es-CL');
+  const s = '$ ' + abs.toLocaleString('es-CL');
   return n < 0 ? '-' + s : s;
 }
 function pct(real, ppto) {
