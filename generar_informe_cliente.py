@@ -202,11 +202,11 @@ data_port = [
      Paragraph("2.100 UF", tc), Paragraph("Mutuaria (hipotecario)", tc),
      Paragraph("Arriendo Airbnb (amoblado)", tc),
      Paragraph("✔ DFL2\n(1ª de 2 permitidas)", tc)],
-    [Paragraph("2", tc), Paragraph("Dpto. DFL2 – Ñuñoa", tc),
+    [Paragraph("2", tc), Paragraph("Dpto. DFL2 – Ñuñoa (actual)", tc),
      Paragraph("No indicado", tc), Paragraph("Crédito hipotecario", tc),
      Paragraph("A definir", tc),
      Paragraph("✔ DFL2\n(2ª de 2 permitidas)", tc)],
-    [Paragraph("3", tc), Paragraph("Dpto. futuro – entrega 1er sem. 2029", tc),
+    [Paragraph("3", tc), Paragraph("Dpto. futuro – Ñuñoa – entrega 1er sem. 2029", tc),
      Paragraph("Por determinar", tc), Paragraph("Por definir", tc),
      Paragraph("Sin uso aún", tc),
      Paragraph("⚠ Sin beneficio DFL2\n(límite ya alcanzado)", tc)],
@@ -312,15 +312,15 @@ story += tabla_kv("Mayor valor en venta — Propiedad 1", [
 # ══════════════════════════════════════════════════════════════════════════════
 # ─── PROPIEDAD 2 ──────────────────────────────────────────────────────────────
 story.append(PageBreak())
-story += prop_header("2", "Departamento DFL2 — Ñuñoa",
+story += prop_header("2", "Departamento DFL2 — Ñuñoa (actual)",
                      "Financiamiento: Crédito Hipotecario Banco", colors.HexColor("#2E7D5C"))
 
 story += section("P2 — FICHA DE LA PROPIEDAD")
 story += tabla_kv("DATOS CLAVE — PROPIEDAD 2", [
-    ("Ubicación",            "Ñuñoa"),
-    ("Clasificación",        "DFL2 (Propiedad N°2 de 2 permitidas — límite alcanzado)"),
+    ("Ubicación",            "Ñuñoa (misma comuna que la Propiedad 3)"),
+    ("Clasificación",        "DFL2 (Propiedad N°2 de 2 permitidas — límite alcanzado con esta propiedad)"),
     ("Financiamiento",       "Crédito hipotecario (banco)"),
-    ("Uso actual",           "Por definir (no se indica si está arrendada)"),
+    ("Uso actual",           "Por definir (no se indica si está arrendada actualmente)"),
 ])
 
 story += section("P2 — ANÁLISIS DE ESCENARIOS DE ARRIENDO", color=CELESTE)
@@ -372,7 +372,7 @@ story += tabla_kv("Mayor valor en venta — Propiedad 2", [
 # ══════════════════════════════════════════════════════════════════════════════
 # ─── PROPIEDAD 3 ──────────────────────════════════════════════════════════════
 story.append(PageBreak())
-story += prop_header("3", "Departamento Futuro — Entrega 1er Semestre 2029",
+story += prop_header("3", "Departamento Futuro — Ñuñoa — Entrega 1er Semestre 2029",
                      "Sin DFL2 · Por adquirir · Compra a inmobiliaria", colors.HexColor("#6B3A8C"))
 
 story += section("P3 — ANÁLISIS PREVIO A LA COMPRA")
@@ -381,8 +381,10 @@ story.append(Paragraph(
     "fundamental para optimizar la carga tributaria desde el origen.", cuerpo))
 
 story += tabla_kv("SITUACIÓN TRIBUTARIA — PROPIEDAD 3", [
+    ("Ubicación",
+     "Ñuñoa — misma comuna que la Propiedad 2. Ambos departamentos en Ñuñoa."),
     ("Estado DFL2",
-     "⚠ SIN beneficio DFL2: el cliente ya tiene 2 propiedades DFL2 (límite máximo Ley N°21.420 de 2022). "
+     "⚠ SIN beneficio DFL2: el cliente ya tiene 2 propiedades DFL2 (P1 y P2 — límite máximo Ley N°21.420 de 2022). "
      "Los ingresos de arrendamiento de esta propiedad NO serán INR."),
     ("IVA en la compra",
      "La inmobiliaria es vendedor habitual → la compra estará afecta a IVA (19% sobre base "
@@ -496,13 +498,13 @@ story += section("ESTRATEGIA DE VENTA RECOMENDADA", color=VERDE)
 story += tabla_comp(
     ["Orden sugerido", "Propiedad", "Motivo"],
     [
-        ["1°", "Propiedad 2 — DFL2 Ñuñoa",
+        ["1°", "Propiedad 2 — DFL2 Ñuñoa (actual)",
          "Si tiene menor valorización, conviene venderla primero para 'usar' parte del INR "
          "de 8.000 UF con menor impacto. Verificar plazo de 1 año desde adquisición."],
         ["2°", "Propiedad 1 — DFL2 Airbnb",
          "Vendida después de P2, permite optimizar el saldo del INR restante. "
          "Evaluar si convendrá IUS 10% o IGC según situación del año."],
-        ["3°", "Propiedad 3 — Entrega 2029",
+        ["3°", "Propiedad 3 — Ñuñoa, Entrega 2029",
          "Vender con suficiente tiempo de distancia de las anteriores para evitar "
          "calificación de habitualidad. Probablemente exceda el INR de 8.000 UF si las "
          "anteriores ya lo consumieron — prever pago de IUS 10%."],
@@ -520,7 +522,7 @@ story.append(PageBreak())
 story += section("CUADRO RESUMEN — SITUACIÓN TRIBUTARIA POR PROPIEDAD")
 
 story += tabla_comp(
-    ["", "P1 — DFL2 Airbnb", "P2 — DFL2 Ñuñoa", "P3 — Futuro 2029"],
+    ["", "P1 — DFL2 Airbnb", "P2 — DFL2 Ñuñoa (actual)", "P3 — Ñuñoa futuro 2029"],
     [
         ["DFL2", "✔ Sí (1ª prop.)", "✔ Sí (2ª prop.)", "✖ No (límite alcanzado)"],
         ["IVA en compra", "Según vendedor al momento de compra", "Según vendedor",
