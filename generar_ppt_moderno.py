@@ -202,8 +202,7 @@ def send_back(shape):
 
 def header(slide, title, sub=None):
     """Standard modern header — navy band + orange accent line."""
-    bg = rect(slide, 0, 0, 13.333, 1.45, NAVY)
-    send_back(bg)
+    rect(slide, 0, 0, 13.333, 1.45, NAVY)
     rect(slide, 0, 1.45, 13.333, 0.06, ORANGE)
     tb(slide, title, 0.55, 0.12, 10.5, 1.0, 28,
        color=WHITE, bold=True, valign=MSO_ANCHOR.MIDDLE)
@@ -236,7 +235,7 @@ def person(slide, letter, cx, cy, color=NAVY):
     oval(slide, cx - HR, cy,      HR*2, HR*2, color)
     rrect(slide, cx - BW/2, cy + HR*2 + 0.03, BW, BH, color)
     tb(slide, letter, cx - 0.22, cy - 0.05, 0.44, 0.42,
-       20, color=color, bold=True, align=PP_ALIGN.CENTER,
+       20, color=WHITE, bold=True, align=PP_ALIGN.CENTER,
        valign=MSO_ANCHOR.MIDDLE)
 
 def arrow_h(slide, x, y, w=0.5, color=TEXT_M):
@@ -281,11 +280,11 @@ divider(s, 0.6, 4.1, 8.5, color=RGBColor(0x40, 0x60, 0x90))
 # Members
 tb(s, "Integrantes", 0.6, 4.3, 3.0, 0.4, 11, color=TEXT_L)
 miembros = ["Andrea Añasco", "Gema Sepúlveda", "Karen Rebolledo", "Nicolás Muñoz"]
-x_m = 0.6
+x_m = 0.5
 for m in miembros:
-    rbox(s, m, x_m, 4.75, 2.9, 0.55, NAVY_LT, fc=WHITE, size=12, bold=True,
+    rbox(s, m, x_m, 4.75, 2.85, 0.55, BLUE, fc=WHITE, size=12, bold=True,
          align=PP_ALIGN.CENTER)
-    x_m += 3.05
+    x_m += 2.97
 
 # Bottom label
 tb(s, "Catálogo de Esquemas Tributarios SII 2025",
@@ -420,7 +419,7 @@ for cx_arrow in [RCX + 0.6, RCX + 2.1, RCX + 3.6]:
 # Percentages
 pct_x = [RCX + 0.1, RCX + 1.62, RCX + 3.1]
 for px in pct_x:
-    tb(s, "33,33%", px, 2.85, 0.85, 0.28, 9.5,
+    tb(s, "33,33%", px, 1.82, 0.85, 0.28, 9.5,
        color=TEXT_M, align=PP_ALIGN.CENTER)
 
 # Society D
@@ -467,7 +466,7 @@ rbox(s, '"A", "B" y "C" constituyen una sociedad de profesionales "D", destinada
 # Flow diagram B A C → D
 for i, (letter, cx2, color_f) in enumerate([("B", 3.9, NAVY), ("A", 4.85, ORANGE), ("C", 5.8, NAVY)]):
     circle_label(s, letter, cx2, 4.15, r=0.28, fill=color_f, fc=WHITE, size=15)
-    tb(s, "33,33%", cx2 - 0.3, 3.85, 0.75, 0.27, 9, color=TEXT_M, align=PP_ALIGN.CENTER)
+    tb(s, "33,33%", cx2 - 0.3, 3.55, 0.75, 0.27, 9, color=TEXT_M, align=PP_ALIGN.CENTER)
 
 # Converging arrows
 for cx3 in [3.9, 4.85, 5.8]:
