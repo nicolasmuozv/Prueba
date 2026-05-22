@@ -369,7 +369,6 @@
     <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val pos" id="ini-ing">—</div><div class="metric-sub" id="ini-ing-sub">—</div></div>
     <div class="metric"><div class="metric-label">Gastos</div><div class="metric-val neg" id="ini-gas">—</div><div class="metric-sub" id="ini-gas-sub">—</div></div>
     <div class="metric"><div class="metric-label">Flujo neto</div><div class="metric-val" id="ini-neto">—</div><div class="metric-sub">del mes</div></div>
-    <div class="metric"><div class="metric-label">Ahorro</div><div class="metric-val" id="ini-aho">—</div><div class="metric-sub" id="ini-aho-sub">—</div></div>
   </div>
 
   <div class="sec">Ingresos</div>
@@ -380,9 +379,6 @@
 
   <div class="sec">Gastos fijos</div>
   <div id="ini-fij-rows"></div>
-
-  <div class="sec">Ahorro</div>
-  <div id="ini-aho-rows"></div>
 
   <div class="export-row">
     <button class="btn-export" onclick="exportarExcel()">
@@ -520,25 +516,22 @@ const MONTHS_FULL=['Mayo 2026','Junio 2026','Julio 2026','Agosto 2026','Septiemb
 const SALDO_INI_MAY=121424;
 
 const PPTO={
-  ingresos:{'Sueldo / Honorarios':[1280000,1280000,1280000,1280000,1280000,1280000,1280000,1280000],'Saint Venik':[150000,150000,150000,150000,150000,150000,150000,150000],'Boya / Poya familiar':[330000,0,0,0,0,0,0,0],'Préstamo Auditable':[0,333000,333000,333000,333000,333000,333000,333000],'Otros ingresos':[0,0,0,0,0,0,0,0]},
-  fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Estacionamiento Viña':[80000,80000,80000,80000,80000,80000,80000,80000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Disney+':[10900,10900,10900,10900,10900,10900,10900,10900],'Netflix':[10900,10900,10900,10900,10900,10900,10900,10900],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000]},
-  variables:{'Bencina':[150000,150000,150000,150000,150000,150000,150000,150000],'Alimentación':[60000,60000,60000,60000,60000,60000,60000,60000],'Salidas / Restaurantes':[80000,80000,80000,80000,80000,80000,80000,80000],'Ropa y vestuario':[50000,50000,50000,50000,50000,50000,50000,50000],'Entretención / Ocio':[40000,40000,40000,40000,40000,40000,40000,40000],'Salud / Farmacia':[20000,20000,20000,20000,20000,20000,20000,20000],'Movilización (peaje/uber)':[15000,15000,15000,15000,15000,15000,15000,15000],'Mantención vehículo':[200000,0,0,200000,0,0,200000,0],'Imprevistos':[50000,50000,50000,50000,50000,50000,50000,50000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
-  ahorro:{'Fondo de emergencia':[50000,50000,50000,50000,50000,50000,50000,50000],'Ahorro garantía arriendo':[0,0,0,0,0,0,0,0],'Ahorro libre / inversión':[0,0,0,0,0,0,0,0]}
+  ingresos:{'Sueldo / Honorarios':[1280000,1280000,1280000,1280000,1280000,1280000,1280000,1280000],'Saint Venik':[150000,150000,150000,150000,150000,150000,150000,150000],'Boya / Poya familiar':[330000,0,0,0,0,0,0,0],'Ingresos renta':[0,333000,333000,333000,333000,333000,333000,333000],'Otros ingresos':[0,0,0,0,0,0,0,0]},
+  fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Disney+':[10900,10900,10900,10900,10900,10900,10900,10900],'Netflix':[10900,10900,10900,10900,10900,10900,10900,10900],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
+  variables:{'Bencina':[150000,150000,150000,150000,150000,150000,150000,150000],'Alimentación':[60000,60000,60000,60000,60000,60000,60000,60000],'Salidas / Restaurantes':[80000,80000,80000,80000,80000,80000,80000,80000],'Ropa y vestuario':[50000,50000,50000,50000,50000,50000,50000,50000],'Salud / Farmacia':[20000,20000,20000,20000,20000,20000,20000,20000],'Movilización (peaje/uber)':[15000,15000,15000,15000,15000,15000,15000,15000],'Mantención vehículo':[200000,0,0,200000,0,0,200000,0],'Imprevistos':[50000,50000,50000,50000,50000,50000,50000,50000]},
+  ahorro:{}
 };
 
 const CAT_COLOR={
   'Sueldo / Honorarios':'#6366F1','Saint Venik':'#8B5CF6','Boya / Poya familiar':'#A78BFA',
-  'Préstamo Auditable':'#7C3AED','Otros ingresos':'#C4B5FD',
+  'Ingresos renta':'#7C3AED','Otros ingresos':'#C4B5FD',
   'Arriendo depto Viña':'#EC4899','Crédito automotriz':'#F43F5E',
-  'Estacionamiento Viña':'#FB923C','Gym':'#FBBF24',
-  'Disney+':'#34D399','Netflix':'#10B981',
-  'Polla familiar':'#22D3EE','Gasto financiero':'#3B82F6',
+  'Gym':'#FBBF24','Disney+':'#34D399','Netflix':'#10B981',
+  'Polla familiar':'#22D3EE','Gasto financiero':'#3B82F6','Corte de pelo':'#CBD5E1',
   'Bencina':'#F97316','Alimentación':'#EAB308',
   'Salidas / Restaurantes':'#84CC16','Ropa y vestuario':'#F472B6',
-  'Entretención / Ocio':'#A78BFA','Salud / Farmacia':'#2DD4BF',
-  'Movilización (peaje/uber)':'#FB923C','Mantención vehículo':'#94A3B8',
-  'Imprevistos':'#EF4444','Corte de pelo':'#CBD5E1',
-  'Fondo de emergencia':'#3ECF8E','Ahorro garantía arriendo':'#6EE7B7','Ahorro libre / inversión':'#A7F3D0'
+  'Salud / Farmacia':'#2DD4BF','Movilización (peaje/uber)':'#FB923C',
+  'Mantención vehículo':'#94A3B8','Imprevistos':'#EF4444'
 };
 
 const TX_INICIALES=[
@@ -609,13 +602,11 @@ function cambiarMesIni(d){mesIni=Math.max(0,Math.min(7,mesIni+d));renderInicio()
 function renderInicio(){
   const txs=getAll();const m=mesIni;
   let sI=SALDO_INI_MAY;
-  for(let i=0;i<m;i++)sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto')-sumGrupo(txs,PPTO.ahorro,i,'gasto');
+  for(let i=0;i<m;i++)sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto');
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
-  const gasR=sumGrupo(txs,PPTO.fijos,m,'gasto')+sumGrupo(txs,PPTO.variables,m,'gasto')+sumGrupo(txs,PPTO.ahorro,m,'gasto');
-  const ahoR=sumGrupo(txs,PPTO.ahorro,m,'gasto');
+  const gasR=sumGrupo(txs,PPTO.fijos,m,'gasto')+sumGrupo(txs,PPTO.variables,m,'gasto');
   const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[m],0);
-  const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.ahorro).reduce((s,a)=>s+a[m],0);
-  const ahoP=Object.values(PPTO.ahorro).reduce((s,a)=>s+a[m],0);
+  const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
   const neto=ingR-gasR;const sF=sI+neto;
 
   const $s=document.getElementById('ini-saldo');
@@ -628,8 +619,6 @@ function renderInicio(){
   document.getElementById('ini-gas-sub').textContent='Ppto '+clp(gasP);
   const $n=document.getElementById('ini-neto');$n.textContent=clp(neto);
   $n.className='metric-val'+(neto>=0?' pos':' neg');
-  document.getElementById('ini-aho').textContent=clp(ahoR);
-  document.getElementById('ini-aho-sub').textContent='Ppto '+clp(ahoP);
 
   const pctG=gasP?Math.round((gasR/gasP)*100):0;
   const $al=document.getElementById('ini-alert-wrap');
@@ -641,7 +630,6 @@ function renderInicio(){
   document.getElementById('ini-ing-rows').innerHTML=makeRows(txs,PPTO.ingresos,m,'ingreso');
   document.getElementById('ini-var-rows').innerHTML=makeRows(txs,PPTO.variables,m,'gasto');
   document.getElementById('ini-fij-rows').innerHTML=makeRows(txs,PPTO.fijos,m,'gasto');
-  document.getElementById('ini-aho-rows').innerHTML=makeRows(txs,PPTO.ahorro,m,'gasto');
 }
 
 function makeRows(txs,grupo,m,tipo){
@@ -685,7 +673,7 @@ function setTipo(t){
 function updateCats(){
   const s=document.getElementById('f-cat');s.innerHTML='';
   const gs=currentTipo==='gasto'
-    ?[{l:'Variables',c:Object.keys(PPTO.variables)},{l:'Fijos',c:Object.keys(PPTO.fijos)},{l:'Ahorro',c:Object.keys(PPTO.ahorro)}]
+    ?[{l:'Variables',c:Object.keys(PPTO.variables)},{l:'Fijos',c:Object.keys(PPTO.fijos)}]
     :[{l:'Ingresos',c:Object.keys(PPTO.ingresos)}];
   for(const g of gs){const o=document.createElement('optgroup');o.label=g.l;for(const c of g.c){const op=document.createElement('option');op.value=c;op.textContent=c;o.appendChild(op);}s.appendChild(o);}
 }
@@ -735,12 +723,10 @@ function renderResumen(){
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
   const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
-  const ahoR=sumGrupo(txs,PPTO.ahorro,m,'gasto');
   const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[m],0);
   const fijP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0);
   const varP=Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
-  const ahoP=Object.values(PPTO.ahorro).reduce((s,a)=>s+a[m],0);
-  const gasR=fijR+varR+ahoR;const gasP=fijP+varP+ahoP;
+  const gasR=fijR+varR;const gasP=fijP+varP;
   const netoR=ingR-gasR;const netoP=ingP-gasP;
 
   const $al=document.getElementById('res-alert-wrap');
@@ -764,9 +750,6 @@ function renderResumen(){
   html+=fila('Gastos variables','','',false,true);
   for(const[c,a]of Object.entries(PPTO.variables))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m]);
   html+=fila('Subtotal variables',varR,varP,true);
-  html+=fila('Ahorro','','',false,true);
-  for(const[c,a]of Object.entries(PPTO.ahorro))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m]);
-  html+=fila('Subtotal ahorro',ahoR,ahoP,true);
   html+=fila('Flujo neto del mes',netoR,netoP,true);
   document.getElementById('res-tabla').innerHTML=html;
 }
@@ -791,7 +774,7 @@ function exportarExcel(){
   csv+=csvRow(cab);
   csv+=csvRow(['Saldo inicial','',SALDO_INI_MAY]);
   csv+=csvRow([]);
-  for(const[sec,tipo,grupo]of[['INGRESOS','ingreso',PPTO.ingresos],['GASTOS FIJOS','gasto',PPTO.fijos],['GASTOS VARIABLES','gasto',PPTO.variables],['AHORRO','gasto',PPTO.ahorro]]){
+  for(const[sec,tipo,grupo]of[['INGRESOS','ingreso',PPTO.ingresos],['GASTOS FIJOS','gasto',PPTO.fijos],['GASTOS VARIABLES','gasto',PPTO.variables]]){
     csv+=csvRow([sec]);
     for(const[c,a]of Object.entries(grupo)){
       const r=[c];let tp=0,tr=0;
@@ -805,9 +788,9 @@ function exportarExcel(){
   {const r=['Flujo neto'];let tp=0,tr=0;
     for(let i=0;i<8;i++){
       const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[i],0);
-      const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.ahorro).reduce((s,a)=>s+a[i],0);
+      const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[i],0);
       const ingR=sumGrupo(txs,PPTO.ingresos,i,'ingreso');
-      const gasR=sumGrupo(txs,PPTO.fijos,i,'gasto')+sumGrupo(txs,PPTO.variables,i,'gasto')+sumGrupo(txs,PPTO.ahorro,i,'gasto');
+      const gasR=sumGrupo(txs,PPTO.fijos,i,'gasto')+sumGrupo(txs,PPTO.variables,i,'gasto');
       r.push(ingP-gasP,ingR-gasR);tp+=(ingP-gasP);tr+=(ingR-gasR);
     }
     r.push(tp,tr);csv+=csvRow(r);
@@ -839,17 +822,14 @@ function generarInforme(){
   const ingR=sumGrupo(txs,PPTO.ingresos,mes,'ingreso');
   const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[mes],0);
   const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[mes],0)
-            +Object.values(PPTO.variables).reduce((s,a)=>s+a[mes],0)
-            +Object.values(PPTO.ahorro).reduce((s,a)=>s+a[mes],0);
+            +Object.values(PPTO.variables).reduce((s,a)=>s+a[mes],0);
   const gasR=sumGrupo(txs,PPTO.fijos,mes,'gasto')
-            +sumGrupo(txs,PPTO.variables,mes,'gasto')
-            +sumGrupo(txs,PPTO.ahorro,mes,'gasto');
-  const ahoR=sumGrupo(txs,PPTO.ahorro,mes,'gasto');
+            +sumGrupo(txs,PPTO.variables,mes,'gasto');
   const netR=ingR-gasR;
   const netP=ingP-gasP;
 
   // ── Top gastos por categoría ──
-  const allGas={...PPTO.fijos,...PPTO.variables,...PPTO.ahorro};
+  const allGas={...PPTO.fijos,...PPTO.variables};
   const catGas=Object.keys(allGas).map(c=>({
     cat:c, real:sumCat(txs,c,mes,'gasto'), ppto:allGas[c][mes]
   })).filter(x=>x.real>0).sort((a,b)=>b.real-a.real);
