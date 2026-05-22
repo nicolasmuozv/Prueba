@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-title" content="Mi Flujo">
   <meta name="theme-color" content="#08080E">
   <title>Mi Flujo 2026</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -700,32 +699,56 @@ function renderResumen(){
 // ══════════════════════════════════════
 //  EXPORTAR
 // ══════════════════════════════════════
+function csvRow(arr){
+  return arr.map(v=>{
+    const s=v===undefined||v===null?'':String(v);
+    return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
+  }).join(',')+'\r\n';
+}
 function exportarExcel(){
-  if(typeof XLSX==='undefined'){showToast('Sin conexión',true);return;}
-  const txs=getAll();const wb=XLSX.utils.book_new();
-  const rows=[['FLUJO DE CAJA MAY–DIC 2026 – NICO MUÑOZ'],['Generado: '+new Date().toLocaleDateString('es-CL')],[]];
-  const cab=['CONCEPTO'];for(const mn of MONTHS){cab.push(mn+' Ppto',mn+' Real');}cab.push('Total Ppto','Total Real');rows.push(cab);
-  rows.push(['Saldo inicial','',SALDO_INI_MAY]);rows.push([]);
+  const txs=getAll();
+  // Hoja 1: Flujo presupuesto vs real
+  let csv='﻿'; // BOM para que Excel reconozca UTF-8
+  csv+=csvRow(['FLUJO DE CAJA MAY–DIC 2026 – NICO MUÑOZ']);
+  csv+=csvRow(['Generado: '+new Date().toLocaleDateString('es-CL')]);
+  csv+=csvRow([]);
+  const cab=['CONCEPTO'];for(const mn of MONTHS){cab.push(mn+' Ppto',mn+' Real');}cab.push('Total Ppto','Total Real');
+  csv+=csvRow(cab);
+  csv+=csvRow(['Saldo inicial','',SALDO_INI_MAY]);
+  csv+=csvRow([]);
   for(const[sec,tipo,grupo]of[['INGRESOS','ingreso',PPTO.ingresos],['GASTOS FIJOS','gasto',PPTO.fijos],['GASTOS VARIABLES','gasto',PPTO.variables],['AHORRO','gasto',PPTO.ahorro]]){
-    rows.push([sec]);
-    for(const[c,a]of Object.entries(grupo)){const r=[c];let tp=0,tr=0;for(let i=0;i<8;i++){const p=a[i],rl=sumCat(txs,c,i,tipo);r.push(p,rl);tp+=p;tr+=rl;}r.push(tp,tr);rows.push(r);}
-    const r=['Total '+sec.toLowerCase()];let tp=0,tr=0;for(let i=0;i<8;i++){const p=Object.values(grupo).reduce((s,a)=>s+a[i],0),rl=sumGrupo(txs,grupo,i,tipo);r.push(p,rl);tp+=p;tr+=rl;}r.push(tp,tr);rows.push(r);rows.push([]);
+    csv+=csvRow([sec]);
+    for(const[c,a]of Object.entries(grupo)){
+      const r=[c];let tp=0,tr=0;
+      for(let i=0;i<8;i++){const p=a[i],rl=sumCat(txs,c,i,tipo);r.push(p,rl);tp+=p;tr+=rl;}
+      r.push(tp,tr);csv+=csvRow(r);
+    }
+    const r=['Total '+sec.toLowerCase()];let tp=0,tr=0;
+    for(let i=0;i<8;i++){const p=Object.values(grupo).reduce((s,a)=>s+a[i],0),rl=sumGrupo(txs,grupo,i,tipo);r.push(p,rl);tp+=p;tr+=rl;}
+    r.push(tp,tr);csv+=csvRow(r);csv+=csvRow([]);
   }
-  {const r=['Flujo neto'];let tp=0,tr=0;for(let i=0;i<8;i++){const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[i],0),gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.ahorro).reduce((s,a)=>s+a[i],0);const ingR=sumGrupo(txs,PPTO.ingresos,i,'ingreso'),gasR=sumGrupo(txs,PPTO.fijos,i,'gasto')+sumGrupo(txs,PPTO.variables,i,'gasto')+sumGrupo(txs,PPTO.ahorro,i,'gasto');r.push(ingP-gasP,ingR-gasR);tp+=(ingP-gasP);tr+=(ingR-gasR);}r.push(tp,tr);rows.push(r);}
-  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:28},...Array(18).fill({wch:13}),{wch:13},{wch:13}];
-  XLSX.utils.book_append_sheet(wb,ws,'Flujo 2026');
-  const r2=[['DETALLE'],['Fecha','Descripción','Monto','Categoría','Tipo','Mes']];
-  for(const t of[...txs].sort((a,b)=>a.mes-b.mes||a.fecha.localeCompare(b.fecha)))r2.push([t.fecha,t.desc,t.monto,t.cat,t.tipo==='gasto'?'Gasto':'Ingreso',MONTHS_FULL[t.mes]||t.mes]);
-  const ws2=XLSX.utils.aoa_to_sheet(r2);ws2['!cols']=[{wch:13},{wch:30},{wch:13},{wch:28},{wch:10},{wch:16}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Detalle');
+  {const r=['Flujo neto'];let tp=0,tr=0;
+    for(let i=0;i<8;i++){
+      const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[i],0);
+      const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[i],0)+Object.values(PPTO.ahorro).reduce((s,a)=>s+a[i],0);
+      const ingR=sumGrupo(txs,PPTO.ingresos,i,'ingreso');
+      const gasR=sumGrupo(txs,PPTO.fijos,i,'gasto')+sumGrupo(txs,PPTO.variables,i,'gasto')+sumGrupo(txs,PPTO.ahorro,i,'gasto');
+      r.push(ingP-gasP,ingR-gasR);tp+=(ingP-gasP);tr+=(ingR-gasR);
+    }
+    r.push(tp,tr);csv+=csvRow(r);
+  }
+  csv+=csvRow([]);
+  csv+=csvRow(['--- DETALLE DE MOVIMIENTOS ---']);
+  csv+=csvRow(['Fecha','Descripción','Monto','Categoría','Tipo','Mes']);
+  for(const t of[...txs].sort((a,b)=>a.mes-b.mes||a.fecha.localeCompare(b.fecha)))
+    csv+=csvRow([t.fecha,t.desc,t.monto,t.cat,t.tipo==='gasto'?'Gasto':'Ingreso',MONTHS_FULL[t.mes]||t.mes]);
   try{
-    const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='Flujo_Nico_2026.xlsx';
+    const a=document.createElement('a');a.href=url;a.download='Flujo_Nico_2026.csv';
     document.body.appendChild(a);a.click();
     setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
-    showToast('Excel descargado');
+    showToast('Archivo descargado');
   }catch(e){showToast('Error al exportar',true);}
 }
 
