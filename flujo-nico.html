@@ -718,7 +718,15 @@ function exportarExcel(){
   for(const t of[...txs].sort((a,b)=>a.mes-b.mes||a.fecha.localeCompare(b.fecha)))r2.push([t.fecha,t.desc,t.monto,t.cat,t.tipo==='gasto'?'Gasto':'Ingreso',MONTHS_FULL[t.mes]||t.mes]);
   const ws2=XLSX.utils.aoa_to_sheet(r2);ws2['!cols']=[{wch:13},{wch:30},{wch:13},{wch:28},{wch:10},{wch:16}];
   XLSX.utils.book_append_sheet(wb,ws2,'Detalle');
-  XLSX.writeFile(wb,'Flujo_Nico_2026.xlsx');showToast('Excel descargado');
+  try{
+    const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='Flujo_Nico_2026.xlsx';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+    showToast('Excel descargado');
+  }catch(e){showToast('Error al exportar',true);}
 }
 
 // ══════════════════════════════════════
