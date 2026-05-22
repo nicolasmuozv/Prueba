@@ -195,6 +195,62 @@
     }
     .btn-submit:active{opacity:.85;}
 
+    /* ── INFORME MODAL ── */
+    .inf-modal{
+      position:fixed;inset:0;z-index:200;
+      background:var(--bg);
+      display:flex;flex-direction:column;
+      transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);
+      padding-top:env(safe-area-inset-top);
+    }
+    .inf-modal.open{transform:translateY(0);}
+    .inf-top{
+      display:flex;align-items:flex-start;justify-content:space-between;
+      padding:20px 20px 0;flex-shrink:0;
+    }
+    .inf-label{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+    .inf-title{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.5px;}
+    .inf-subtitle{font-size:12px;color:var(--text3);margin-top:3px;}
+    .inf-close{
+      width:34px;height:34px;border-radius:50%;
+      background:var(--s3);border:1px solid var(--border);
+      color:var(--text2);font-size:18px;line-height:1;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;margin-top:2px;
+    }
+    .inf-body{overflow-y:auto;flex:1;padding:24px 20px 40px;-webkit-overflow-scrolling:touch;}
+    .inf-sec{margin-bottom:28px;}
+    .inf-sec-title{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;}
+    .stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .stat-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 10px;}
+    .stat-card .sc-lbl{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+    .stat-card .sc-val{font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+    .stat-card .sc-val.pos{color:var(--green);}
+    .stat-card .sc-val.neg{color:var(--red);}
+    .stat-card .sc-sub{font-size:10px;color:var(--text3);margin-top:3px;}
+    .bar-list{display:flex;flex-direction:column;gap:10px;}
+    .bar-item{display:flex;flex-direction:column;gap:5px;}
+    .bar-meta{display:flex;justify-content:space-between;align-items:baseline;}
+    .bar-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}
+    .bar-amount{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;}
+    .bar-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+    .concl-list{display:flex;flex-direction:column;gap:10px;}
+    .concl-item{display:flex;gap:10px;align-items:flex-start;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);}
+    .concl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+    .concl-text{font-size:13px;color:var(--text2);line-height:1.5;}
+    .concl-text strong{color:var(--text);font-weight:600;}
+    .health-bar-wrap{margin-bottom:20px;}
+    .health-label{display:flex;justify-content:space-between;margin-bottom:8px;}
+    .health-score-txt{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+    .health-track{height:6px;background:var(--s3);border-radius:3px;overflow:hidden;}
+    .health-fill{height:100%;border-radius:3px;}
+    .over-list{display:flex;flex-direction:column;gap:8px;}
+    .over-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(239,100,97,.07);border:1px solid rgba(239,100,97,.18);border-radius:8px;}
+    .over-name{font-size:12px;color:var(--text);font-weight:500;}
+    .over-pct{font-size:12px;font-weight:700;color:var(--red);}
+    .divider{height:1px;background:var(--border);margin:0 0 28px;}
+
     /* ── MONTH CHIPS ── */
     .chips{display:flex;gap:6px;overflow-x:auto;padding:0 20px 16px;scrollbar-width:none;}
     .chips::-webkit-scrollbar{display:none;}
@@ -331,10 +387,29 @@
   <div class="export-row">
     <button class="btn-export" onclick="exportarExcel()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Exportar Excel actualizado
+      Exportar datos CSV
+    </button>
+  </div>
+  <div class="export-row" style="padding-top:10px;">
+    <button class="btn-export" onclick="generarInforme()" style="border-color:rgba(200,169,110,.25);color:var(--gold);">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Informe del mes
     </button>
   </div>
   <div style="height:12px;"></div>
+</div>
+
+<!-- ══════════ MODAL INFORME ══════════ -->
+<div id="modal-informe" class="inf-modal">
+  <div class="inf-top">
+    <div>
+      <div class="inf-label">Informe mensual</div>
+      <div class="inf-title" id="inf-mes-title"></div>
+      <div class="inf-subtitle" id="inf-gen-date"></div>
+    </div>
+    <button class="inf-close" onclick="cerrarInforme()">&#215;</button>
+  </div>
+  <div class="inf-body" id="inf-body"></div>
 </div>
 
 <!-- ══════════ AGREGAR ══════════ -->
@@ -750,6 +825,185 @@ function exportarExcel(){
     setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
     showToast('Archivo descargado');
   }catch(e){showToast('Error al exportar',true);}
+}
+
+// ══════════════════════════════════════
+//  INFORME DEL MES
+// ══════════════════════════════════════
+function generarInforme(){
+  const mes=mesRes;
+  const txs=getAll();
+  const mn=MONTHS_FULL[mes];
+
+  // ── Cálculos base ──
+  const ingR=sumGrupo(txs,PPTO.ingresos,mes,'ingreso');
+  const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[mes],0);
+  const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[mes],0)
+            +Object.values(PPTO.variables).reduce((s,a)=>s+a[mes],0)
+            +Object.values(PPTO.ahorro).reduce((s,a)=>s+a[mes],0);
+  const gasR=sumGrupo(txs,PPTO.fijos,mes,'gasto')
+            +sumGrupo(txs,PPTO.variables,mes,'gasto')
+            +sumGrupo(txs,PPTO.ahorro,mes,'gasto');
+  const ahoR=sumGrupo(txs,PPTO.ahorro,mes,'gasto');
+  const netR=ingR-gasR;
+  const netP=ingP-gasP;
+
+  // ── Top gastos por categoría ──
+  const allGas={...PPTO.fijos,...PPTO.variables,...PPTO.ahorro};
+  const catGas=Object.keys(allGas).map(c=>({
+    cat:c, real:sumCat(txs,c,mes,'gasto'), ppto:allGas[c][mes]
+  })).filter(x=>x.real>0).sort((a,b)=>b.real-a.real);
+  const top5=catGas.slice(0,5);
+  const maxTop=top5[0]?top5[0].real:1;
+
+  // ── Categorías sobre presupuesto ──
+  const sobre=catGas.filter(x=>x.ppto>0&&x.real>x.ppto).map(x=>({
+    cat:x.cat, real:x.real, ppto:x.ppto, pct:Math.round(x.real/x.ppto*100)
+  })).sort((a,b)=>b.pct-a.pct);
+
+  // ── Health score (ejecución gasto vs presupuesto) ──
+  const execPct=gasP>0?Math.round(gasR/gasP*100):0;
+  let healthLbl,healthColor,healthScore;
+  if(execPct<=75){healthLbl='Excelente';healthColor='#3ECF8E';healthScore=100;}
+  else if(execPct<=90){healthLbl='Muy bueno';healthColor='#6EE7B7';healthScore=85;}
+  else if(execPct<=100){healthLbl='Bueno';healthColor='#C8A96E';healthScore=70;}
+  else if(execPct<=115){healthLbl='Atención';healthColor='#F97316';healthScore=45;}
+  else{healthLbl='Crítico';healthColor='#EF4444';healthScore=20;}
+
+  // ── Tasa de ahorro ──
+  const tasaAhorro=ingR>0?Math.round((ingR-gasR)/ingR*100):0;
+
+  // ── Conclusiones automáticas ──
+  const conclusiones=[];
+  if(ingR===0&&gasR===0){
+    conclusiones.push({color:'#7B7E96',text:'No hay movimientos registrados en este mes todavía.'});
+  } else {
+    if(netR>=0){
+      conclusiones.push({color:'#3ECF8E',text:`Mes positivo: el flujo neto fue <strong>${clp(netR)}</strong>, lo que significa que tus ingresos cubrieron todos los gastos.`});
+    } else {
+      conclusiones.push({color:'#EF4444',text:`Mes negativo: los gastos superaron los ingresos por <strong>${clp(Math.abs(netR))}</strong>. Revisar las categorías con mayor exceso.`});
+    }
+    if(tasaAhorro>=20){
+      conclusiones.push({color:'#3ECF8E',text:`Tu tasa de ahorro fue del <strong>${tasaAhorro}%</strong>. Muy por encima del objetivo mínimo recomendado (10–15%).`});
+    } else if(tasaAhorro>=10){
+      conclusiones.push({color:'#C8A96E',text:`Tu tasa de ahorro fue del <strong>${tasaAhorro}%</strong>. En línea con el objetivo mínimo recomendado.`});
+    } else if(tasaAhorro>=0){
+      conclusiones.push({color:'#F97316',text:`Tu tasa de ahorro fue del <strong>${tasaAhorro}%</strong>. Bajo el mínimo recomendado del 10%. Revisar gastos variables.`});
+    } else {
+      conclusiones.push({color:'#EF4444',text:`Tasa de ahorro negativa: gastaste más de lo que ingresaste este mes.`});
+    }
+    if(top5.length>0){
+      conclusiones.push({color:CAT_COLOR[top5[0].cat]||'#6B7280',text:`El mayor gasto del mes fue <strong>${top5[0].cat}</strong> con <strong>${clp(top5[0].real)}</strong>${top5[0].ppto>0?' (presupuesto: '+clp(top5[0].ppto)+')':''}.`});
+    }
+    if(sobre.length===0&&gasR>0){
+      conclusiones.push({color:'#3ECF8E',text:`Todas las categorías se mantuvieron dentro del presupuesto. Excelente control del gasto.`});
+    } else if(sobre.length>0){
+      conclusiones.push({color:'#F97316',text:`<strong>${sobre.length} ${sobre.length===1?'categoría':'categorías'}</strong> superaron el presupuesto: ${sobre.slice(0,3).map(x=>x.cat).join(', ')}${sobre.length>3?'...':''}.`});
+    }
+    if(ingR<ingP&&ingP>0){
+      const falta=ingP-ingR;
+      conclusiones.push({color:'#F97316',text:`Los ingresos reales (<strong>${clp(ingR)}</strong>) estuvieron <strong>${clp(falta)}</strong> por debajo del presupuesto de ingresos.`});
+    } else if(ingR>=ingP&&ingP>0){
+      conclusiones.push({color:'#3ECF8E',text:`Los ingresos alcanzaron o superaron el presupuesto (<strong>${clp(ingR)}</strong> vs <strong>${clp(ingP)}</strong> proyectado).`});
+    }
+  }
+
+  // ── Render HTML ──
+  document.getElementById('inf-mes-title').textContent=mn;
+  document.getElementById('inf-gen-date').textContent='Generado el '+new Date().toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+
+  let html='';
+
+  // Resumen financiero
+  html+=`<div class="inf-sec">
+    <div class="inf-sec-title">Resumen financiero</div>
+    <div class="stat3">
+      <div class="stat-card">
+        <div class="sc-lbl">Ingresos</div>
+        <div class="sc-val pos">${clp(ingR)}</div>
+        <div class="sc-sub">Ppto ${clp(ingP)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-lbl">Gastos</div>
+        <div class="sc-val ${gasR>gasP?'neg':''}">${clp(gasR)}</div>
+        <div class="sc-sub">Ppto ${clp(gasP)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-lbl">Flujo neto</div>
+        <div class="sc-val ${netR>=0?'pos':'neg'}">${clp(netR)}</div>
+        <div class="sc-sub">Ppto ${clp(netP)}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Salud financiera
+  html+=`<div class="inf-sec">
+    <div class="inf-sec-title">Salud financiera del mes</div>
+    <div class="health-bar-wrap">
+      <div class="health-label">
+        <span class="health-score-txt" style="color:${healthColor}">${healthLbl}</span>
+        <span style="font-size:13px;color:var(--text3);">Ejecución gasto: ${execPct}%</span>
+      </div>
+      <div class="health-track">
+        <div class="health-fill" style="width:${healthScore}%;background:${healthColor};"></div>
+      </div>
+    </div>
+  </div>`;
+
+  // Top gastos
+  if(top5.length>0){
+    html+=`<div class="inf-sec">
+      <div class="inf-sec-title">Principales gastos</div>
+      <div class="bar-list">`;
+    for(const x of top5){
+      const w=Math.round(x.real/maxTop*100);
+      const col=CAT_COLOR[x.cat]||'#6B7280';
+      const pctLabel=x.ppto>0?` · ${Math.round(x.real/x.ppto*100)}% del ppto`:'';
+      html+=`<div class="bar-item">
+        <div class="bar-meta">
+          <span class="bar-name">${x.cat}</span>
+          <span class="bar-amount">${clp(x.real)}${pctLabel}</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${col};"></div></div>
+      </div>`;
+    }
+    html+=`</div></div>`;
+  }
+
+  // Categorías sobre presupuesto
+  if(sobre.length>0){
+    html+=`<div class="inf-sec">
+      <div class="inf-sec-title">Categorías sobre presupuesto</div>
+      <div class="over-list">`;
+    for(const x of sobre){
+      html+=`<div class="over-item">
+        <span class="over-name">${x.cat}</span>
+        <span class="over-pct">${x.pct}% <span style="font-weight:400;color:var(--text3);font-size:11px;">(+${clp(x.real-x.ppto)})</span></span>
+      </div>`;
+    }
+    html+=`</div></div>`;
+  }
+
+  // Conclusiones
+  if(conclusiones.length>0){
+    html+=`<div class="inf-sec">
+      <div class="inf-sec-title">Conclusiones</div>
+      <div class="concl-list">`;
+    for(const c of conclusiones){
+      html+=`<div class="concl-item">
+        <div class="concl-dot" style="background:${c.color};"></div>
+        <div class="concl-text">${c.text}</div>
+      </div>`;
+    }
+    html+=`</div></div>`;
+  }
+
+  document.getElementById('inf-body').innerHTML=html;
+  document.getElementById('modal-informe').classList.add('open');
+}
+
+function cerrarInforme(){
+  document.getElementById('modal-informe').classList.remove('open');
 }
 
 // ══════════════════════════════════════
