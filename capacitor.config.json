@@ -1,0 +1,15 @@
+{
+  "appId": "com.nico.miflujo",
+  "appName": "Mi Flujo",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#08080E",
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
