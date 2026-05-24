@@ -1,6 +1,6 @@
 {
   "appId": "com.nico.miflujo",
-  "appName": "Mi Flujo",
+  "appName": "WalletWolf",
   "webDir": "www",
   "ios": {
     "contentInset": "always",
