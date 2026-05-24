@@ -436,7 +436,7 @@
     </div>
     <div class="fg"><label>Categoría</label><select class="fs" id="f-cat"></select></div>
     <div class="fg"><label>Descripción</label><input class="fi" type="text" id="f-desc" placeholder="Ej: Almuerzo, bencina..."></div>
-    <div class="fg"><label>Monto</label><input class="fi" type="number" id="f-monto" placeholder="0" min="1" inputmode="numeric"></div>
+    <div class="fg"><label>Monto</label><input class="fi" type="text" id="f-monto" placeholder="0" inputmode="numeric" oninput="fmtMonto(this)"></div>
     <button class="btn-submit" onclick="guardarTransaccion()">Guardar</button>
   </div>
 </div>
@@ -516,15 +516,14 @@ const MONTHS_FULL=['Mayo 2026','Junio 2026','Julio 2026','Agosto 2026','Septiemb
 const SALDO_INI_MAY=121424;
 
 const PPTO={
-  ingresos:{'Sueldo / Honorarios':[1280000,1280000,1280000,1280000,1280000,1280000,1280000,1280000],'Saint Venik':[150000,150000,150000,150000,150000,150000,150000,150000],'Boya / Poya familiar':[330000,0,0,0,0,0,0,0],'Ingresos renta':[0,333000,333000,333000,333000,333000,333000,333000],'Otros ingresos':[0,0,0,0,0,0,0,0]},
+  ingresos:{'Sueldo / Honorarios':[1430000,1430000,1430000,1430000,1430000,1430000,1430000,1430000],'Otros ingresos':[480000,333000,333000,333000,333000,333000,333000,333000]},
   fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Disney+':[10900,10900,10900,10900,10900,10900,10900,10900],'Netflix':[10900,10900,10900,10900,10900,10900,10900,10900],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
   variables:{'Bencina':[150000,150000,150000,150000,150000,150000,150000,150000],'Alimentación':[60000,60000,60000,60000,60000,60000,60000,60000],'Salidas / Restaurantes':[80000,80000,80000,80000,80000,80000,80000,80000],'Ropa y vestuario':[50000,50000,50000,50000,50000,50000,50000,50000],'Salud / Farmacia':[20000,20000,20000,20000,20000,20000,20000,20000],'Movilización (peaje/uber)':[15000,15000,15000,15000,15000,15000,15000,15000],'Mantención vehículo':[200000,0,0,200000,0,0,200000,0],'Imprevistos':[50000,50000,50000,50000,50000,50000,50000,50000]},
   ahorro:{}
 };
 
 const CAT_COLOR={
-  'Sueldo / Honorarios':'#6366F1','Saint Venik':'#8B5CF6','Boya / Poya familiar':'#A78BFA',
-  'Ingresos renta':'#7C3AED','Otros ingresos':'#C4B5FD',
+  'Sueldo / Honorarios':'#6366F1','Otros ingresos':'#C4B5FD',
   'Arriendo depto Viña':'#EC4899','Crédito automotriz':'#F43F5E',
   'Gym':'#FBBF24','Disney+':'#34D399','Netflix':'#10B981',
   'Polla familiar':'#22D3EE','Gasto financiero':'#3B82F6','Corte de pelo':'#CBD5E1',
@@ -535,8 +534,8 @@ const CAT_COLOR={
 };
 
 const TX_INICIALES=[
-  {id:'i001',fecha:'2026-05-01',desc:'Saint Venik mayo',monto:150000,cat:'Saint Venik',tipo:'ingreso',mes:0},
-  {id:'i002',fecha:'2026-05-01',desc:'Boya / Poya familiar',monto:330000,cat:'Boya / Poya familiar',tipo:'ingreso',mes:0},
+  {id:'i001',fecha:'2026-05-01',desc:'Saint Venik mayo',monto:150000,cat:'Otros ingresos',tipo:'ingreso',mes:0},
+  {id:'i002',fecha:'2026-05-01',desc:'Boya / Poya familiar',monto:330000,cat:'Otros ingresos',tipo:'ingreso',mes:0},
   {id:'i003',fecha:'2026-05-01',desc:'Otros ingresos',monto:30000,cat:'Otros ingresos',tipo:'ingreso',mes:0},
   {id:'g001',fecha:'2026-05-01',desc:'Polla familiar mayo',monto:30000,cat:'Polla familiar',tipo:'gasto',mes:0},
   {id:'g002',fecha:'2026-05-01',desc:'Gasto financiero mayo',monto:28950,cat:'Gasto financiero',tipo:'gasto',mes:0},
@@ -677,12 +676,17 @@ function updateCats(){
     :[{l:'Ingresos',c:Object.keys(PPTO.ingresos)}];
   for(const g of gs){const o=document.createElement('optgroup');o.label=g.l;for(const c of g.c){const op=document.createElement('option');op.value=c;op.textContent=c;o.appendChild(op);}s.appendChild(o);}
 }
+function fmtMonto(el){
+  const raw=el.value.replace(/\D/g,'');
+  if(!raw){el.value='';return;}
+  el.value=parseInt(raw,10).toLocaleString('es-CL');
+}
 function guardarTransaccion(){
   const fecha=document.getElementById('f-fecha').value;
   const mes=parseInt(document.getElementById('f-mes').value);
   const cat=document.getElementById('f-cat').value;
   const desc=document.getElementById('f-desc').value.trim();
-  const monto=parseFloat(document.getElementById('f-monto').value);
+  const monto=parseInt(document.getElementById('f-monto').value.replace(/\D/g,''),10);
   if(!fecha){showToast('Falta la fecha',true);return;}
   if(!desc){showToast('Falta la descripción',true);return;}
   if(!monto||monto<=0){showToast('Monto inválido',true);return;}
