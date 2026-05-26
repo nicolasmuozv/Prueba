@@ -1189,6 +1189,7 @@ function renderBanco(){
           :`<div style="font-size:17px;font-weight:700;color:var(--green);">Al día</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">Todos los movimientos están categorizados</div>`}
       </div>
       <button class="btn-submit" onclick="sincronizarAhora(this)">Sincronizar ahora</button>
+      ${pend>0?`<button class="banco-url-reset" style="color:var(--red);margin-top:4px;" onclick="eliminarTodosPendientes()">Eliminar todos los pendientes (${pend})</button>`:''}
       <button class="banco-url-reset" onclick="resetBancoUrl()">Cambiar URL del script</button>
     </div>`;
 }
@@ -1216,6 +1217,14 @@ function resetBancoUrl(){
   if(!confirm('¿Desvincular el script de Gmail?'))return;
   localStorage.removeItem('bancoScriptUrl');
   renderBanco();
+}
+function eliminarTodosPendientes(){
+  const pend=getAll().filter(t=>t.pendiente===true);
+  if(!pend.length)return;
+  if(!confirm(`¿Eliminar los ${pend.length} movimientos pendientes? Úsalo si ya los tienes ingresados manualmente.`))return;
+  saveData(getAll().filter(t=>t.pendiente!==true));
+  updateBadge();renderBanco();renderInicio();
+  showToast(`${pend.length} pendientes eliminados`);
 }
 
 // ══════════════════════════════════════
