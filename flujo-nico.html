@@ -331,6 +331,23 @@
     /* ── EMPTY ── */
     .empty{padding:60px 20px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6;}
 
+    /* ── DETALLE CATEGORÍA ── */
+    .det-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+    .det-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+    .det-title{font-size:20px;font-weight:700;letter-spacing:-.3px;}
+    .det-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;margin-bottom:20px;}
+    .det-fill{height:100%;border-radius:2px;}
+    .det-nums{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px;}
+    .det-num{background:var(--s2);padding:14px 16px;}
+    .det-num-lbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+    .det-num-val{font-size:18px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums;}
+    .det-txs-title{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .det-tx{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
+    .det-tx:last-child{border-bottom:none;}
+    .det-tx-desc{font-size:13px;color:var(--text);font-weight:400;}
+    .det-tx-date{font-size:11px;color:var(--text3);margin-top:2px;}
+    .det-tx-amt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;}
+
     /* ── PENDING BADGE ── */
     .nav-badge{position:absolute;top:7px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none;line-height:1;}
     .tx.tx-pending{background:rgba(245,158,11,.04);}
@@ -501,6 +518,19 @@
   </div>
   <div id="res-alert-wrap"></div>
   <div id="res-tabla"></div>
+</div>
+
+<!-- ══════════ MODAL DETALLE CAT ══════════ -->
+<div id="modal-catdet" class="inf-modal">
+  <div class="inf-top">
+    <div>
+      <div class="inf-label" id="catdet-label">Categoría</div>
+      <div class="inf-title" id="catdet-title"></div>
+      <div class="inf-subtitle" id="catdet-mes"></div>
+    </div>
+    <button class="inf-close" onclick="cerrarDetalleCat()">&#215;</button>
+  </div>
+  <div class="inf-body" id="catdet-body"></div>
 </div>
 
 <!-- ══════════ MODAL BANCO ══════════ -->
@@ -699,7 +729,7 @@ function makeRows(txs,grupo,m,tipo){
     const p=ppto?Math.min(Math.round((real/ppto)*100),100):real>0?100:0;
     const col=CAT_COLOR[cat]||'#6B7280';
     const barCol=tipo==='ingreso'?col:fillColor(p);
-    html+=`<div class="cat-row">
+    html+=`<div class="cat-row" onclick="abrirDetalleCat('${cat.replace(/'/g,"\\'")}','${tipo}',${m})" style="cursor:pointer;">
       <div class="cat-dot" style="background:${col};"></div>
       <div class="cat-body">
         <div class="cat-name">${cat}</div>
@@ -1056,6 +1086,57 @@ function generarInforme(){
 
 function cerrarInforme(){
   document.getElementById('modal-informe').classList.remove('open');
+}
+
+// ══════════════════════════════════════
+//  DETALLE CATEGORÍA
+// ══════════════════════════════════════
+function abrirDetalleCat(cat,tipo,mes){
+  const txs=getAll().filter(t=>t.cat===cat&&t.mes===mes&&t.tipo===tipo).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const real=txs.reduce((s,t)=>s+t.monto,0);
+  const grupo=tipo==='ingreso'?PPTO.ingresos:{...PPTO.fijos,...PPTO.variables};
+  const ppto=(grupo[cat]||[])[mes]||0;
+  const col=CAT_COLOR[cat]||'#6B7280';
+  const p=ppto?Math.min(Math.round(real/ppto*100),100):real>0?100:0;
+  const barCol=tipo==='ingreso'?col:fillColor(p);
+  const pctLabel=ppto?` · ${Math.round(real/ppto*100)}%`:'';
+
+  document.getElementById('catdet-label').textContent=tipo==='ingreso'?'Ingreso':'Gasto';
+  document.getElementById('catdet-title').textContent=cat;
+  document.getElementById('catdet-mes').textContent=MONTHS_FULL[mes];
+
+  let html=`
+    <div class="det-track"><div class="det-fill" style="width:${p}%;background:${barCol};"></div></div>
+    <div class="det-nums">
+      <div class="det-num">
+        <div class="det-num-lbl">Real</div>
+        <div class="det-num-val" style="color:${tipo==='ingreso'?'var(--green)':'var(--text)'}">${clp(real)}${pctLabel}</div>
+      </div>
+      <div class="det-num">
+        <div class="det-num-lbl">Presupuesto</div>
+        <div class="det-num-val">${ppto?clp(ppto):'—'}</div>
+      </div>
+    </div>`;
+
+  if(txs.length){
+    html+=`<div class="det-txs-title">${txs.length} movimiento${txs.length>1?'s':''}</div>`;
+    for(const t of txs){
+      const sign=tipo==='gasto'?'−':'+';
+      const color=tipo==='gasto'?'var(--red)':'var(--green)';
+      html+=`<div class="det-tx">
+        <div><div class="det-tx-desc">${t.desc}</div><div class="det-tx-date">${formatFecha(t.fecha)}</div></div>
+        <div class="det-tx-amt" style="color:${color}">${sign}${clp(t.monto)}</div>
+      </div>`;
+    }
+  } else {
+    html+=`<div class="empty" style="padding:40px 0;">Sin movimientos registrados</div>`;
+  }
+
+  document.getElementById('catdet-body').innerHTML=html;
+  document.getElementById('modal-catdet').classList.add('open');
+}
+function cerrarDetalleCat(){
+  document.getElementById('modal-catdet').classList.remove('open');
 }
 
 // ══════════════════════════════════════
