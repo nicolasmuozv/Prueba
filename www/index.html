@@ -331,6 +331,12 @@
     /* ── EMPTY ── */
     .empty{padding:60px 20px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6;}
 
+    /* ── PENDING BADGE ── */
+    .nav-badge{position:absolute;top:7px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none;line-height:1;}
+    .tx.tx-pending{background:rgba(245,158,11,.04);}
+    .tx-tag-btn{background:none;border:1px solid rgba(245,158,11,.4);border-radius:4px;color:#F59E0B;font-size:10px;font-weight:600;cursor:pointer;padding:3px 7px;flex-shrink:0;font-family:'Inter',sans-serif;letter-spacing:.3px;text-transform:uppercase;transition:all .15s;}
+    .tx-tag-btn:active{background:rgba(245,158,11,.1);}
+
     /* ── BANCO IMPORT ── */
     .banco-item{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
     .banco-item-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px;}
@@ -503,11 +509,29 @@
     <div>
       <div class="inf-label">Gmail</div>
       <div class="inf-title">Importar del banco</div>
-      <div class="inf-subtitle" id="banco-subtitle">Movimientos pendientes</div>
+      <div class="inf-subtitle" id="banco-subtitle">Sincronización automática</div>
     </div>
     <button class="inf-close" onclick="cerrarBanco()">&#215;</button>
   </div>
   <div class="inf-body" id="banco-body"></div>
+</div>
+
+<!-- ══════════ MODAL CATEGORIZAR ══════════ -->
+<div id="modal-catpick" class="inf-modal">
+  <div class="inf-top">
+    <div>
+      <div class="inf-label">Sin categorizar</div>
+      <div class="inf-title">Categorizar</div>
+      <div class="inf-subtitle" id="catpick-meta"></div>
+    </div>
+    <button class="inf-close" onclick="cerrarCategorizador()">&#215;</button>
+  </div>
+  <div class="inf-body" style="padding-top:24px;">
+    <div class="fg"><label>Descripción</label><input class="fi" type="text" id="catpick-desc"></div>
+    <div class="fg"><label>Categoría</label><select class="fs" id="catpick-sel"></select></div>
+    <button class="btn-submit" onclick="guardarCategorizacion()">Guardar</button>
+    <button class="banco-url-reset" style="margin-top:12px;" onclick="eliminarPending()">Eliminar este movimiento</button>
+  </div>
 </div>
 
 <!-- ── BOTTOM NAV ── -->
@@ -558,6 +582,7 @@ const PPTO={
 };
 
 const CAT_COLOR={
+  'Sin categorizar':'#F59E0B',
   'Sueldo / Honorarios':'#6366F1','Otros ingresos':'#C4B5FD',
   'Arriendo depto Viña':'#EC4899','Crédito automotriz':'#F43F5E',
   'Gym':'#FBBF24','Disney+':'#34D399','Netflix':'#10B981',
@@ -738,15 +763,23 @@ function renderHistorial(){
   const txs=getAll().filter(t=>t.mes===mesHist).filter(t=>filtroHist==='todo'||t.tipo===filtroHist).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const $l=document.getElementById('hist-lista');
   if(!txs.length){$l.innerHTML='<div class="empty">Sin movimientos en este mes</div>';return;}
-  $l.innerHTML=txs.map(t=>`<div class="tx">
-    <div class="tx-bar" style="background:${CAT_COLOR[t.cat]||'#6B7280'};"></div>
-    <div class="tx-info"><div class="tx-desc">${t.desc}</div><div class="tx-cat">${t.cat}</div></div>
+  $l.innerHTML=txs.map(t=>{
+    const pend=t.pendiente===true;
+    const col=pend?'#F59E0B':(CAT_COLOR[t.cat]||'#6B7280');
+    const catLabel=pend?`<span style="color:#F59E0B;font-weight:500;">Sin categorizar</span>`:t.cat;
+    const actionBtn=pend
+      ?`<button class="tx-tag-btn" onclick="abrirCategorizador('${t.id}')">Categorizar</button>`
+      :`<button class="tx-del" onclick="confirmarBorrar('${t.id}','${t.desc.replace(/'/g,"\\'")}')">&#10005;</button>`;
+    return`<div class="tx${pend?' tx-pending':''}">
+    <div class="tx-bar" style="background:${col};"></div>
+    <div class="tx-info"><div class="tx-desc">${t.desc}</div><div class="tx-cat">${catLabel}</div></div>
     <div class="tx-right">
       <div class="tx-amt ${t.tipo==='gasto'?'neg':'pos'}">${t.tipo==='gasto'?'−':'+'}${clp(t.monto)}</div>
       <div class="tx-date">${formatFecha(t.fecha)}</div>
     </div>
-    <button class="tx-del" onclick="confirmarBorrar('${t.id}','${t.desc.replace(/'/g,"\\'")}')">&#10005;</button>
-  </div>`).join('');
+    ${actionBtn}
+  </div>`;
+  }).join('');
 }
 function setMesHist(i){mesHist=i;renderHistorial();}
 function setFiltro(f){filtroHist=f;['todo','gasto','ingreso'].forEach(x=>document.getElementById('fb-'+x).classList.toggle('active',x===f));renderHistorial();}
@@ -1026,8 +1059,101 @@ function cerrarInforme(){
 }
 
 // ══════════════════════════════════════
+//  BADGE PENDIENTES
+// ══════════════════════════════════════
+function updateBadge(){
+  const count=getAll().filter(t=>t.pendiente===true).length;
+  let badge=document.getElementById('hist-badge');
+  if(!badge){
+    const btn=document.getElementById('nb-historial');
+    badge=document.createElement('span');
+    badge.id='hist-badge';badge.className='nav-badge';
+    btn.appendChild(badge);
+  }
+  badge.textContent=count>9?'9+':count;
+  badge.style.display=count>0?'flex':'none';
+}
+
+// ══════════════════════════════════════
+//  CATEGORIZAR PENDIENTES
+// ══════════════════════════════════════
+let _catId=null;
+function abrirCategorizador(id){
+  const tx=getAll().find(t=>t.id===id);
+  if(!tx)return;
+  _catId=id;
+  const color=tx.tipo==='gasto'?'var(--red)':'var(--green)';
+  const sign=tx.tipo==='gasto'?'−':'+';
+  document.getElementById('catpick-meta').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${clp(tx.monto)}</span> · ${formatFecha(tx.fecha)}`;
+  document.getElementById('catpick-desc').value=tx.desc;
+  const sel=document.getElementById('catpick-sel');
+  const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
+  const ingresoOpts=Object.keys(PPTO.ingresos).map(c=>`<option value="${c}">${c}</option>`).join('');
+  sel.innerHTML=tx.tipo==='gasto'?gastoOpts:ingresoOpts;
+  document.getElementById('modal-catpick').classList.add('open');
+}
+function cerrarCategorizador(){
+  document.getElementById('modal-catpick').classList.remove('open');
+  _catId=null;
+}
+function guardarCategorizacion(){
+  if(!_catId)return;
+  const cat=document.getElementById('catpick-sel').value;
+  const desc=document.getElementById('catpick-desc').value.trim();
+  const txs=getAll();
+  const i=txs.findIndex(t=>t.id===_catId);
+  if(i>=0){txs[i].cat=cat;txs[i].pendiente=false;if(desc)txs[i].desc=desc;saveData(txs);}
+  cerrarCategorizador();
+  renderHistorial();updateBadge();
+  showToast('Categoría guardada');
+}
+function eliminarPending(){
+  if(!_catId)return;
+  const tx=getAll().find(t=>t.id===_catId);
+  if(!tx)return;
+  if(confirm(`¿Eliminar "${tx.desc}"?`)){
+    deleteTx(_catId);cerrarCategorizador();
+    renderHistorial();updateBadge();
+    showToast('Eliminado');
+  }
+}
+
+// ══════════════════════════════════════
 //  IMPORTAR DEL BANCO (Gmail Apps Script)
 // ══════════════════════════════════════
+function detectarMesFromFecha(fecha){
+  const p=fecha.split('-');
+  return detectarMes(new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])));
+}
+function _importItems(items){
+  if(!items.length)return 0;
+  const url=localStorage.getItem('bancoScriptUrl')||'';
+  const txs=getAll();
+  const existingIds=new Set(txs.filter(t=>t.bancoId).map(t=>t.bancoId));
+  let count=0;
+  for(const tx of items){
+    if(existingIds.has(tx.id))continue;
+    const mes=detectarMesFromFecha(tx.fecha);
+    addTx({id:uid(),fecha:tx.fecha,desc:tx.desc,monto:tx.monto,cat:'Sin categorizar',tipo:tx.tipo,mes,pendiente:true,bancoId:tx.id});
+    if(url)fetch(url+'?action=confirm&id='+encodeURIComponent(tx.id)).catch(()=>{});
+    count++;
+  }
+  return count;
+}
+function autoImportarBanco(){
+  const url=localStorage.getItem('bancoScriptUrl');
+  if(!url)return;
+  fetch(url)
+    .then(r=>r.json())
+    .then(items=>{
+      const count=_importItems(items);
+      if(count>0){
+        updateBadge();renderInicio();
+        showToast(count===1?'1 movimiento del banco importado':`${count} movimientos del banco importados`);
+      }
+    })
+    .catch(()=>{});
+}
 function abrirBanco(){
   document.getElementById('modal-banco').classList.add('open');
   renderBanco();
@@ -1045,96 +1171,51 @@ function renderBanco(){
       <div class="inf-sec">
         <div class="inf-sec-title">Configuración</div>
         <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;">
-          Pega aquí la URL de tu Google Apps Script.<br>
-          Sigue las instrucciones del archivo <strong>gmail-script.gs</strong> para configurarlo en <strong>script.google.com</strong>.
+          Pega la URL de tu Google Apps Script. Los movimientos se agregan al Historial como <span style="color:#F59E0B;font-weight:600;">Sin categorizar</span> y tú los categorizas con un toque.
         </p>
         <div class="fg"><label>URL del script</label><input class="fi" type="url" id="banco-url-input" placeholder="https://script.google.com/macros/s/..."></div>
         <button class="btn-submit" onclick="guardarBancoUrl()">Guardar y conectar</button>
       </div>`;
     return;
   }
-  $sub.textContent='Cargando...';
-  $body.innerHTML=`<div class="empty">Buscando movimientos...</div>`;
+  const pend=getAll().filter(t=>t.pendiente===true).length;
+  $sub.textContent='Conectado';
+  $body.innerHTML=`
+    <div class="inf-sec">
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:10px;">Estado actual</div>
+        ${pend>0
+          ?`<div style="font-size:17px;font-weight:700;color:#F59E0B;margin-bottom:4px;">${pend} sin categorizar</div><div style="font-size:12px;color:var(--text3);">Ve al Historial y toca cada movimiento para asignarle una categoría</div>`
+          :`<div style="font-size:17px;font-weight:700;color:var(--green);">Al día</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">Todos los movimientos están categorizados</div>`}
+      </div>
+      <button class="btn-submit" onclick="sincronizarAhora(this)">Sincronizar ahora</button>
+      <button class="banco-url-reset" onclick="resetBancoUrl()">Cambiar URL del script</button>
+    </div>`;
+}
+function sincronizarAhora(btn){
+  const url=localStorage.getItem('bancoScriptUrl');
+  if(!url)return;
+  if(btn)btn.textContent='Buscando...';
   fetch(url)
-    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-    .then(data=>renderPendientes(data))
-    .catch(()=>{
-      $sub.textContent='Error de conexión';
-      $body.innerHTML=`<div class="empty" style="color:var(--red);">No se pudo conectar.<br>Revisa que el script esté publicado correctamente.</div>
-        <div style="padding:0 20px 20px;"><button class="banco-url-reset" onclick="resetBancoUrl()">Cambiar URL</button></div>`;
-    });
+    .then(r=>r.json())
+    .then(items=>{
+      const count=_importItems(items);
+      updateBadge();renderBanco();renderInicio();
+      showToast(count>0?(count===1?'1 movimiento importado':`${count} movimientos importados`):'Sin movimientos nuevos');
+    })
+    .catch(()=>{if(btn)btn.textContent='Sincronizar ahora';showToast('No se pudo conectar',true);});
 }
 function guardarBancoUrl(){
-  const v=document.getElementById('banco-url-input').value.trim();
-  if(!v)return;
-  localStorage.setItem('bancoScriptUrl',v);
+  const v=(document.getElementById('banco-url-input')||{}).value||'';
+  if(!v.trim())return;
+  localStorage.setItem('bancoScriptUrl',v.trim());
   renderBanco();
+  setTimeout(()=>sincronizarAhora(),200);
 }
 function resetBancoUrl(){
+  if(!confirm('¿Desvincular el script de Gmail?'))return;
   localStorage.removeItem('bancoScriptUrl');
   renderBanco();
-}
-function renderPendientes(items){
-  const $body=document.getElementById('banco-body');
-  const $sub=document.getElementById('banco-subtitle');
-  if(!items.length){
-    $sub.textContent='Al día';
-    $body.innerHTML='<div class="empty">Sin movimientos pendientes del banco</div>';
-    return;
-  }
-  $sub.textContent=`${items.length} por revisar`;
-  const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
-  const ingresoOpts=Object.keys(PPTO.ingresos).map(c=>`<option value="${c}">${c}</option>`).join('');
-  let html='';
-  for(const tx of items){
-    const opts=tx.tipo==='gasto'?gastoOpts:ingresoOpts;
-    const color=tx.tipo==='gasto'?'var(--red)':'var(--green)';
-    const sign=tx.tipo==='gasto'?'−':'+';
-    const safeDesc=tx.desc.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    html+=`<div class="banco-item" id="bitem-${tx.id}">
-      <div class="banco-item-head">
-        <div>
-          <div class="banco-item-desc">${tx.desc}</div>
-          <div class="banco-item-fecha">${formatFecha(tx.fecha)}</div>
-        </div>
-        <div class="banco-item-monto" style="color:${color}">${sign}${clp(tx.monto)}</div>
-      </div>
-      <div class="banco-item-row">
-        <select class="fs" id="bcat-${tx.id}">${opts}</select>
-      </div>
-      <div class="banco-item-row banco-btn-row">
-        <button class="banco-btn-skip" onclick="bancoProcesar('${tx.id}','skip')">Ignorar</button>
-        <button class="banco-btn-add" onclick="bancoProcesar('${tx.id}','add','${tx.fecha}','${safeDesc}',${tx.monto},'${tx.tipo}')">Agregar</button>
-      </div>
-    </div>`;
-  }
-  html+=`<button class="banco-url-reset" onclick="resetBancoUrl()">Cambiar URL del script</button>`;
-  $body.innerHTML=html;
-}
-function bancoProcesar(id,action,fecha,desc,monto,tipo){
-  if(action==='add'){
-    const cat=document.getElementById('bcat-'+id).value;
-    const mes=detectarMesFromFecha(fecha);
-    addTx({id:uid(),fecha,desc,monto,cat,tipo,mes});
-    showToast(tipo==='gasto'?'Gasto agregado':'Ingreso agregado');
-  }
-  const url=localStorage.getItem('bancoScriptUrl');
-  if(url)fetch(url+'?action=confirm&id='+encodeURIComponent(id)).catch(()=>{});
-  const el=document.getElementById('bitem-'+id);
-  if(el)el.remove();
-  const rem=document.querySelectorAll('.banco-item').length;
-  const $sub=document.getElementById('banco-subtitle');
-  if(rem===0){
-    document.getElementById('banco-body').innerHTML=`<div class="empty">Sin movimientos pendientes</div><button class="banco-url-reset" onclick="resetBancoUrl()">Cambiar URL del script</button>`;
-    $sub.textContent='Al día';
-  }else{
-    $sub.textContent=`${rem} por revisar`;
-  }
-}
-function detectarMesFromFecha(fecha){
-  const p=fecha.split('-');
-  const d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
-  return detectarMes(d);
 }
 
 // ══════════════════════════════════════
@@ -1143,6 +1224,8 @@ function detectarMesFromFecha(fecha){
 (function(){
   const h=new Date();mesIni=mesRes=mesHist=detectarMes(h);
   loadData();renderInicio();
+  updateBadge();
+  setTimeout(autoImportarBanco,1200);
 })();
 </script>
 </body>
