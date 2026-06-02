@@ -370,6 +370,18 @@
     .banco-url-reset{display:block;text-align:center;padding:20px 0 4px;font-size:11px;color:var(--text3);cursor:pointer;letter-spacing:.3px;text-transform:uppercase;background:none;border:none;font-family:'Inter',sans-serif;width:100%;}
     .banco-url-reset:active{color:var(--text2);}
 
+    /* ── REGLAS ── */
+    .regla-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+    .regla-item:last-child{border-bottom:none;}
+    .regla-kw{font-size:13px;font-weight:500;color:var(--text);}
+    .regla-cat-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
+    .regla-learned{font-size:9px;background:rgba(62,207,142,.15);color:var(--green);border-radius:3px;padding:2px 5px;font-weight:700;letter-spacing:.3px;margin-left:6px;vertical-align:middle;}
+    .regla-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:6px;flex-shrink:0;transition:color .15s;}
+    .regla-del:active{color:var(--red);}
+    .regla-default{opacity:.5;}
+    .reglas-add{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+    .reglas-add-row{display:flex;gap:8px;}
+
     /* ── REFRESH BTN ── */
     .btn-refresh-float{
       position:absolute;
@@ -504,10 +516,13 @@
     </div>
   </div>
   <div class="chips" id="hist-chips"></div>
-  <div class="filter-row">
-    <button class="f-btn active" id="fb-todo" onclick="setFiltro('todo')">Todos</button>
-    <button class="f-btn" id="fb-gasto" onclick="setFiltro('gasto')">Gastos</button>
-    <button class="f-btn" id="fb-ingreso" onclick="setFiltro('ingreso')">Ingresos</button>
+  <div class="filter-row" style="justify-content:space-between;">
+    <div style="display:flex;gap:6px;">
+      <button class="f-btn active" id="fb-todo" onclick="setFiltro('todo')">Todos</button>
+      <button class="f-btn" id="fb-gasto" onclick="setFiltro('gasto')">Gastos</button>
+      <button class="f-btn" id="fb-ingreso" onclick="setFiltro('ingreso')">Ingresos</button>
+    </div>
+    <button class="f-btn" onclick="abrirReglas()" style="border-color:rgba(200,169,110,.3);color:var(--gold);">Reglas</button>
   </div>
   <div id="hist-lista"></div>
 </div>
@@ -540,6 +555,19 @@
     <button class="inf-close" onclick="cerrarDetalleCat()">&#215;</button>
   </div>
   <div class="inf-body" id="catdet-body"></div>
+</div>
+
+<!-- ══════════ MODAL REGLAS ══════════ -->
+<div id="modal-reglas" class="inf-modal">
+  <div class="inf-top">
+    <div>
+      <div class="inf-label">Auto-categorización</div>
+      <div class="inf-title">Reglas</div>
+      <div class="inf-subtitle" id="reglas-sub"></div>
+    </div>
+    <button class="inf-close" onclick="cerrarReglas()">&#215;</button>
+  </div>
+  <div class="inf-body" id="reglas-body"></div>
 </div>
 
 <!-- ══════════ MODAL BANCO ══════════ -->
@@ -1150,6 +1178,148 @@ function cerrarDetalleCat(){
 }
 
 // ══════════════════════════════════════
+//  REGLAS DE AUTO-CATEGORIZACIÓN
+// ══════════════════════════════════════
+const RULES_KEY='ww_rules';
+const DEFAULT_RULES=[
+  // Supermercados
+  {k:'jumbo',cat:'Alimentación',tipo:'gasto'},
+  {k:'lider',cat:'Alimentación',tipo:'gasto'},
+  {k:'unimarc',cat:'Alimentación',tipo:'gasto'},
+  {k:'santa isabel',cat:'Alimentación',tipo:'gasto'},
+  {k:'walmart',cat:'Alimentación',tipo:'gasto'},
+  {k:'tottus',cat:'Alimentación',tipo:'gasto'},
+  {k:'acuenta',cat:'Alimentación',tipo:'gasto'},
+  // Delivery / Restaurantes
+  {k:'rappi',cat:'Salidas / Restaurantes',tipo:'gasto'},
+  {k:'uber eats',cat:'Salidas / Restaurantes',tipo:'gasto'},
+  {k:'pedidos ya',cat:'Salidas / Restaurantes',tipo:'gasto'},
+  // Transporte
+  {k:'uber',cat:'Movilización (peaje/uber)',tipo:'gasto'},
+  {k:'cabify',cat:'Movilización (peaje/uber)',tipo:'gasto'},
+  {k:'peaje',cat:'Movilización (peaje/uber)',tipo:'gasto'},
+  {k:'autopista',cat:'Movilización (peaje/uber)',tipo:'gasto'},
+  {k:'emt',cat:'Movilización (peaje/uber)',tipo:'gasto'},
+  // Bencina
+  {k:'copec',cat:'Bencina',tipo:'gasto'},
+  {k:'shell',cat:'Bencina',tipo:'gasto'},
+  {k:'petrobras',cat:'Bencina',tipo:'gasto'},
+  {k:'bencina',cat:'Bencina',tipo:'gasto'},
+  {k:'enex',cat:'Bencina',tipo:'gasto'},
+  // Streaming
+  {k:'netflix',cat:'Netflix',tipo:'gasto'},
+  {k:'disney',cat:'Disney+',tipo:'gasto'},
+  // Gym
+  {k:'smartfit',cat:'Gym',tipo:'gasto'},
+  {k:'bodytech',cat:'Gym',tipo:'gasto'},
+  // Salud / Farmacia
+  {k:'salcobrand',cat:'Salud / Farmacia',tipo:'gasto'},
+  {k:'cruz verde',cat:'Salud / Farmacia',tipo:'gasto'},
+  {k:'ahumada',cat:'Salud / Farmacia',tipo:'gasto'},
+  {k:'farmacia',cat:'Salud / Farmacia',tipo:'gasto'},
+  // Ropa
+  {k:'zara',cat:'Ropa y vestuario',tipo:'gasto'},
+  {k:'falabella',cat:'Ropa y vestuario',tipo:'gasto'},
+  {k:'ripley',cat:'Ropa y vestuario',tipo:'gasto'},
+  {k:'paris',cat:'Ropa y vestuario',tipo:'gasto'},
+];
+
+function loadCustomRules(){const r=localStorage.getItem(RULES_KEY);return r?JSON.parse(r):[];}
+function saveCustomRules(r){localStorage.setItem(RULES_KEY,JSON.stringify(r));}
+function loadRules(){return[...loadCustomRules(),...DEFAULT_RULES];}
+
+function applyRule(desc,tipo){
+  const dl=desc.toLowerCase();
+  for(const r of loadRules()){
+    if(r.tipo===tipo&&dl.includes(r.k.toLowerCase()))return r.cat;
+  }
+  return null;
+}
+
+function learnRule(desc,cat,tipo){
+  const SKIP=['trf','compra','cargo','pago','transferencia','abono','sin','otros'];
+  const words=desc.toLowerCase().trim().split(/\s+/).filter(w=>w.length>2&&!SKIP.includes(w));
+  if(!words.length)return;
+  const kw=words[0];
+  const custom=loadCustomRules();
+  if(custom.some(r=>r.k===kw&&r.tipo===tipo))return;
+  if(DEFAULT_RULES.some(r=>r.k===kw&&r.tipo===tipo))return;
+  custom.unshift({k:kw,cat,tipo,learned:true});
+  saveCustomRules(custom);
+}
+
+function recategorizarPendientes(){
+  const txs=getAll();let count=0;
+  for(const tx of txs){
+    if(tx.pendiente){
+      const autoCat=applyRule(tx.desc,tx.tipo);
+      if(autoCat){tx.cat=autoCat;tx.pendiente=false;count++;}
+    }
+  }
+  if(count>0){saveData(txs);renderHistorial();updateBadge();renderInicio();showToast(`${count} categorizados automáticamente`);}
+  else showToast('Sin coincidencias con reglas actuales');
+  cerrarReglas();
+}
+
+function abrirReglas(){document.getElementById('modal-reglas').classList.add('open');renderReglas();}
+function cerrarReglas(){document.getElementById('modal-reglas').classList.remove('open');}
+
+function renderReglas(){
+  const custom=loadCustomRules();
+  const pend=getAll().filter(t=>t.pendiente).length;
+  document.getElementById('reglas-sub').textContent=`${custom.length} personalizadas · ${DEFAULT_RULES.length} por defecto`;
+  const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
+  const ingresoOpts=Object.keys(PPTO.ingresos).map(c=>`<option value="${c}">${c}</option>`).join('');
+  let html='';
+  if(pend>0)html+=`<button class="btn-submit" style="margin-bottom:20px;" onclick="recategorizarPendientes()">Aplicar reglas a ${pend} pendiente${pend>1?'s':''}</button>`;
+  html+=`<div class="inf-sec">
+    <div class="inf-sec-title">Nueva regla</div>
+    <div class="reglas-add">
+      <div class="reglas-add-row">
+        <input class="fi" type="text" id="regla-kw" placeholder="Keyword (ej: jumbo)" style="flex:1;font-size:13px;padding:10px 12px;">
+        <select class="fs" id="regla-tipo" style="width:95px;font-size:12px;padding:10px 8px;" onchange="updReglaCat()">
+          <option value="gasto">Gasto</option><option value="ingreso">Ingreso</option>
+        </select>
+      </div>
+      <select class="fs" id="regla-cat" style="font-size:13px;">${gastoOpts}</select>
+      <button class="btn-submit" onclick="agregarRegla()" style="padding:11px;">Agregar regla</button>
+    </div>
+  </div>`;
+  if(custom.length){
+    html+=`<div class="inf-sec-title" style="margin-bottom:10px;">Personalizadas (${custom.length})</div>`;
+    custom.forEach((r,i)=>{html+=`<div class="regla-item">
+      <div style="flex:1;"><div class="regla-kw">${r.k}${r.learned?'<span class="regla-learned">auto</span>':''}</div><div class="regla-cat-lbl">→ ${r.cat}</div></div>
+      <button class="regla-del" onclick="borrarRegla(${i})">✕</button>
+    </div>`;});
+  }
+  html+=`<div class="inf-sec-title" style="margin:20px 0 10px;">Por defecto (${DEFAULT_RULES.length})</div>`;
+  DEFAULT_RULES.forEach(r=>{html+=`<div class="regla-item regla-default"><div style="flex:1;"><div class="regla-kw">${r.k}</div><div class="regla-cat-lbl">→ ${r.cat}</div></div></div>`;});
+  document.getElementById('reglas-body').innerHTML=html;
+}
+
+function updReglaCat(){
+  const t=document.getElementById('regla-tipo').value;
+  const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
+  const ingresoOpts=Object.keys(PPTO.ingresos).map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('regla-cat').innerHTML=t==='gasto'?gastoOpts:ingresoOpts;
+}
+function agregarRegla(){
+  const kw=(document.getElementById('regla-kw').value||'').trim().toLowerCase();
+  const cat=document.getElementById('regla-cat').value;
+  const tipo=document.getElementById('regla-tipo').value;
+  if(!kw){showToast('Escribe una keyword',true);return;}
+  const custom=loadCustomRules();
+  if(custom.some(r=>r.k===kw)){showToast('Ya existe esa regla',true);return;}
+  custom.unshift({k:kw,cat,tipo});
+  saveCustomRules(custom);
+  document.getElementById('regla-kw').value='';
+  renderReglas();showToast('Regla agregada');
+}
+function borrarRegla(i){
+  const custom=loadCustomRules();custom.splice(i,1);saveCustomRules(custom);renderReglas();showToast('Regla eliminada');
+}
+
+// ══════════════════════════════════════
 //  BADGE PENDIENTES
 // ══════════════════════════════════════
 function updateBadge(){
@@ -1203,10 +1373,12 @@ function guardarCategorizacion(){
   const txs=getAll();
   const i=txs.findIndex(t=>t.id===_catId);
   if(i>=0){
+    const origDesc=txs[i].desc;
     txs[i].cat=cat;txs[i].pendiente=false;
     if(desc)txs[i].desc=desc;
     if(fecha){txs[i].fecha=fecha;txs[i].mes=detectarMesFromFecha(fecha);}
     saveData(txs);
+    learnRule(desc||origDesc,cat,txs[i].tipo);
   }
   cerrarCategorizador();
   renderHistorial();updateBadge();
@@ -1239,7 +1411,8 @@ function _importItems(items){
   for(const tx of items){
     if(existingIds.has(tx.id))continue;
     const mes=detectarMesFromFecha(tx.fecha);
-    addTx({id:uid(),fecha:tx.fecha,desc:tx.desc,monto:tx.monto,cat:'Sin categorizar',tipo:tx.tipo,mes,pendiente:true,bancoId:tx.id});
+    const autoCat=applyRule(tx.desc,tx.tipo);
+    addTx({id:uid(),fecha:tx.fecha,desc:tx.desc,monto:tx.monto,cat:autoCat||'Sin categorizar',tipo:tx.tipo,mes,pendiente:!autoCat,bancoId:tx.id});
     if(url)fetch(url+'?action=confirm&id='+encodeURIComponent(tx.id)).catch(()=>{});
     count++;
   }
