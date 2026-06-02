@@ -38,9 +38,16 @@ function doGet(e) {
   for (let i = 1; i < rows.length; i++) {
     const [id, fecha, desc, monto, tipo, procesado] = rows[i];
     if (!procesado) {
+      // Sheets puede devolver fecha como Date object — convertir a yyyy-MM-dd
+      let fechaStr;
+      if (fecha instanceof Date) {
+        fechaStr = Utilities.formatDate(fecha, 'America/Santiago', 'yyyy-MM-dd');
+      } else {
+        fechaStr = String(fecha);
+      }
       pending.push({
         id:    String(id),
-        fecha: String(fecha),
+        fecha: fechaStr,
         desc:  String(desc),
         monto: Number(monto),
         tipo:  String(tipo)

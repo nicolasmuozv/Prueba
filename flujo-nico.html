@@ -1169,6 +1169,13 @@ function updateBadge(){
 //  CATEGORIZAR PENDIENTES
 // ══════════════════════════════════════
 let _catId=null;
+function normFecha(f){
+  if(!f)return'';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(f))return f;
+  const d=new Date(f);
+  if(!isNaN(d))return d.toISOString().split('T')[0];
+  return'';
+}
 function abrirCategorizador(id){
   const tx=getAll().find(t=>t.id===id);
   if(!tx)return;
@@ -1176,7 +1183,7 @@ function abrirCategorizador(id){
   const color=tx.tipo==='gasto'?'var(--red)':'var(--green)';
   const sign=tx.tipo==='gasto'?'−':'+';
   document.getElementById('catpick-meta').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${clp(tx.monto)}</span>`;
-  document.getElementById('catpick-fecha').value=tx.fecha;
+  document.getElementById('catpick-fecha').value=normFecha(tx.fecha);
   document.getElementById('catpick-desc').value=tx.desc;
   const sel=document.getElementById('catpick-sel');
   const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
