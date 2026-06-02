@@ -391,7 +391,12 @@
 <!-- ══════════ INICIO ══════════ -->
 <div id="s-inicio" class="screen active">
   <div class="hero">
-    <div class="hero-label">Saldo estimado</div>
+    <div class="hero-label" style="justify-content:space-between;">
+      Saldo estimado
+      <button id="btn-refresh" onclick="sincronizarRefresh()" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:0;display:flex;align-items:center;transition:opacity .2s;" title="Sincronizar banco">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      </button>
+    </div>
     <div class="hero-amount" id="ini-saldo">—</div>
     <div class="hero-meta">
       <div class="hero-month" id="ini-month">Mayo 2026</div>
@@ -419,24 +424,6 @@
   <div class="sec">Gastos fijos</div>
   <div id="ini-fij-rows"></div>
 
-  <div class="export-row">
-    <button class="btn-export" onclick="exportarExcel()">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Exportar datos CSV
-    </button>
-  </div>
-  <div class="export-row" style="padding-top:10px;">
-    <button class="btn-export" onclick="generarInforme()" style="border-color:rgba(200,169,110,.25);color:var(--gold);">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-      Informe del mes
-    </button>
-  </div>
-  <div class="export-row" style="padding-top:10px;">
-    <button class="btn-export" onclick="abrirBanco()" style="border-color:rgba(62,207,142,.2);color:var(--green);">
-      <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="21" x2="12" y2="9"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>
-      Importar del banco
-    </button>
-  </div>
   <div style="height:12px;"></div>
 </div>
 
@@ -557,6 +544,7 @@
     <button class="inf-close" onclick="cerrarCategorizador()">&#215;</button>
   </div>
   <div class="inf-body" style="padding-top:24px;">
+    <div class="fg"><label>Fecha</label><input class="fi" type="date" id="catpick-fecha"></div>
     <div class="fg"><label>Descripción</label><input class="fi" type="text" id="catpick-desc"></div>
     <div class="fg"><label>Categoría</label><select class="fs" id="catpick-sel"></select></div>
     <button class="btn-submit" onclick="guardarCategorizacion()">Guardar</button>
@@ -1165,7 +1153,8 @@ function abrirCategorizador(id){
   _catId=id;
   const color=tx.tipo==='gasto'?'var(--red)':'var(--green)';
   const sign=tx.tipo==='gasto'?'−':'+';
-  document.getElementById('catpick-meta').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${clp(tx.monto)}</span> · ${formatFecha(tx.fecha)}`;
+  document.getElementById('catpick-meta').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${clp(tx.monto)}</span>`;
+  document.getElementById('catpick-fecha').value=tx.fecha;
   document.getElementById('catpick-desc').value=tx.desc;
   const sel=document.getElementById('catpick-sel');
   const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
@@ -1181,9 +1170,15 @@ function guardarCategorizacion(){
   if(!_catId)return;
   const cat=document.getElementById('catpick-sel').value;
   const desc=document.getElementById('catpick-desc').value.trim();
+  const fecha=document.getElementById('catpick-fecha').value;
   const txs=getAll();
   const i=txs.findIndex(t=>t.id===_catId);
-  if(i>=0){txs[i].cat=cat;txs[i].pendiente=false;if(desc)txs[i].desc=desc;saveData(txs);}
+  if(i>=0){
+    txs[i].cat=cat;txs[i].pendiente=false;
+    if(desc)txs[i].desc=desc;
+    if(fecha){txs[i].fecha=fecha;txs[i].mes=detectarMesFromFecha(fecha);}
+    saveData(txs);
+  }
   cerrarCategorizador();
   renderHistorial();updateBadge();
   showToast('Categoría guardada');
@@ -1220,6 +1215,21 @@ function _importItems(items){
     count++;
   }
   return count;
+}
+function sincronizarRefresh(){
+  const btn=document.getElementById('btn-refresh');
+  const url=localStorage.getItem('bancoScriptUrl');
+  if(!url){showToast('Sin script configurado. Toca el ícono del banco en Historial.',true);return;}
+  if(btn)btn.style.opacity='.3';
+  fetch(url)
+    .then(r=>r.json())
+    .then(items=>{
+      const count=_importItems(items);
+      updateBadge();renderInicio();
+      if(btn)btn.style.opacity='1';
+      showToast(count>0?(count===1?'1 movimiento importado':`${count} movimientos importados`):'Sin movimientos nuevos');
+    })
+    .catch(()=>{if(btn)btn.style.opacity='1';showToast('No se pudo conectar',true);});
 }
 function autoImportarBanco(){
   const url=localStorage.getItem('bancoScriptUrl');
