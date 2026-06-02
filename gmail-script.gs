@@ -105,20 +105,26 @@ function processNewEmails() {
 
 // ── Parser de emails ─────────────────
 function parseTx(subject, body, date, id) {
-  const fecha = Utilities.formatDate(date, 'America/Santiago', 'yyyy-MM-dd');
+  const emailFecha = Utilities.formatDate(date, 'America/Santiago', 'yyyy-MM-dd');
+
+  // Extraer fecha de la transacción desde el cuerpo (formato dd/mm/yyyy)
+  function fechaFromBody(b) {
+    const m = b.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : emailFecha;
+  }
 
   // Cargo en cuenta (débito)
   if (/cargo en cuenta/i.test(subject)) {
     const m = body.match(/por\s*\$\s*([\d.,]+)/i);
     const d = body.match(/en\s+([A-ZÁÉÍÓÚÜÑ][A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ.,&'-]+?)\s+el\s+\d{2}\/\d{2}/i);
-    if (m) return { id, fecha, desc: d ? clean(d[1]) : 'Cargo en cuenta', monto: parseMonto(m[1]), tipo: 'gasto' };
+    if (m) return { id, fecha: fechaFromBody(body), desc: d ? clean(d[1]) : 'Cargo en cuenta', monto: parseMonto(m[1]), tipo: 'gasto' };
   }
 
   // Compra tarjeta crédito o débito
   if (/compra con tarjeta/i.test(subject)) {
     const m = body.match(/por\s*\$\s*([\d.,]+)/i);
     const d = body.match(/en\s+([A-ZÁÉÍÓÚÜÑ][A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ.,&'-]+?)\s+el\s+\d{2}\/\d{2}/i);
-    if (m) return { id, fecha, desc: d ? clean(d[1]) : 'Compra con tarjeta', monto: parseMonto(m[1]), tipo: 'gasto' };
+    if (m) return { id, fecha: fechaFromBody(body), desc: d ? clean(d[1]) : 'Compra con tarjeta', monto: parseMonto(m[1]), tipo: 'gasto' };
   }
 
   // Transferencia saliente
