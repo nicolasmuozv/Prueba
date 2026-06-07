@@ -587,8 +587,8 @@
 <div id="modal-catpick" class="inf-modal">
   <div class="inf-top">
     <div>
-      <div class="inf-label">Sin categorizar</div>
-      <div class="inf-title">Categorizar</div>
+      <div class="inf-label" id="catpick-label">Sin categorizar</div>
+      <div class="inf-title" id="catpick-title">Categorizar</div>
       <div class="inf-subtitle" id="catpick-meta"></div>
     </div>
     <button class="inf-close" onclick="cerrarCategorizador()">&#215;</button>
@@ -835,17 +835,14 @@ function renderHistorial(){
     const pend=t.pendiente===true;
     const col=pend?'#F59E0B':(CAT_COLOR[t.cat]||'#6B7280');
     const catLabel=pend?`<span style="color:#F59E0B;font-weight:500;">Sin categorizar</span>`:t.cat;
-    const actionBtn=pend
-      ?`<button class="tx-tag-btn" onclick="abrirCategorizador('${t.id}')">Categorizar</button>`
-      :`<button class="tx-del" onclick="confirmarBorrar('${t.id}','${t.desc.replace(/'/g,"\\'")}')">&#10005;</button>`;
-    return`<div class="tx${pend?' tx-pending':''}">
+    return`<div class="tx${pend?' tx-pending':''}" style="cursor:pointer;" onclick="editarTransaccion('${t.id}')">
     <div class="tx-bar" style="background:${col};"></div>
     <div class="tx-info"><div class="tx-desc">${t.desc}</div><div class="tx-cat">${catLabel}</div></div>
     <div class="tx-right">
       <div class="tx-amt ${t.tipo==='gasto'?'neg':'pos'}">${t.tipo==='gasto'?'−':'+'}${clp(t.monto)}</div>
       <div class="tx-date">${formatFecha(t.fecha)}</div>
     </div>
-    ${actionBtn}
+    <button class="tx-del" onclick="event.stopPropagation();confirmarBorrar('${t.id}','${t.desc.replace(/'/g,"\\'")}')">&#10005;</button>
   </div>`;
   }).join('');
 }
@@ -1287,8 +1284,9 @@ function renderReglas(){
   </div>`;
   if(custom.length){
     html+=`<div class="inf-sec-title" style="margin-bottom:10px;">Personalizadas (${custom.length})</div>`;
-    custom.forEach((r,i)=>{html+=`<div class="regla-item">
+    custom.forEach((r,i)=>{html+=`<div class="regla-item" id="regla-row-${i}">
       <div style="flex:1;"><div class="regla-kw">${r.k}${r.learned?'<span class="regla-learned">auto</span>':''}</div><div class="regla-cat-lbl">→ ${r.cat}</div></div>
+      <button class="regla-del" style="margin-right:6px;background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.2);" onclick="editarRegla(${i})">✎</button>
       <button class="regla-del" onclick="borrarRegla(${i})">✕</button>
     </div>`;});
   }
@@ -1318,6 +1316,34 @@ function agregarRegla(){
 function borrarRegla(i){
   const custom=loadCustomRules();custom.splice(i,1);saveCustomRules(custom);renderReglas();showToast('Regla eliminada');
 }
+function editarRegla(i){
+  const custom=loadCustomRules();
+  const r=custom[i];
+  if(!r)return;
+  const row=document.getElementById(`regla-row-${i}`);
+  if(!row)return;
+  const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
+  const ingresoOpts=Object.keys(PPTO.ingresos).map(c=>`<option value="${c}">${c}</option>`).join('');
+  const catOpts=r.tipo==='gasto'?gastoOpts:ingresoOpts;
+  row.innerHTML=`
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+      <input class="fi" id="edit-kw-${i}" type="text" value="${r.k.replace(/"/g,'&quot;')}" style="font-size:13px;padding:7px 10px;">
+      <select class="fs" id="edit-cat-${i}" style="font-size:13px;">${catOpts}</select>
+    </div>
+    <button class="regla-del" style="margin-left:6px;background:rgba(62,207,142,.12);color:var(--green);border-color:rgba(62,207,142,.2);" onclick="guardarReglaEdit(${i})">✓</button>
+    <button class="regla-del" style="margin-left:4px;" onclick="renderReglas()">✕</button>`;
+  const sel=document.getElementById(`edit-cat-${i}`);
+  if(sel)sel.value=r.cat;
+}
+function guardarReglaEdit(i){
+  const kw=(document.getElementById(`edit-kw-${i}`).value||'').trim().toLowerCase();
+  const cat=document.getElementById(`edit-cat-${i}`).value;
+  if(!kw)return showToast('La palabra clave no puede estar vacía');
+  const custom=loadCustomRules();
+  if(!custom[i])return;
+  custom[i].k=kw;custom[i].cat=cat;
+  saveCustomRules(custom);renderReglas();showToast('Regla actualizada');
+}
 
 // ══════════════════════════════════════
 //  BADGE PENDIENTES
@@ -1346,6 +1372,14 @@ function normFecha(f){
   if(!isNaN(d))return d.toISOString().split('T')[0];
   return'';
 }
+function editarTransaccion(id){
+  const tx=getAll().find(t=>t.id===id);
+  if(!tx)return;
+  const pend=tx.pendiente===true;
+  document.getElementById('catpick-label').textContent=pend?'Sin categorizar':'Editar';
+  document.getElementById('catpick-title').textContent=pend?'Categorizar':'Movimiento';
+  abrirCategorizador(id);
+}
 function abrirCategorizador(id){
   const tx=getAll().find(t=>t.id===id);
   if(!tx)return;
@@ -1359,6 +1393,7 @@ function abrirCategorizador(id){
   const gastoOpts=[...Object.keys(PPTO.variables),...Object.keys(PPTO.fijos)].map(c=>`<option value="${c}">${c}</option>`).join('');
   const ingresoOpts=Object.keys(PPTO.ingresos).map(c=>`<option value="${c}">${c}</option>`).join('');
   sel.innerHTML=tx.tipo==='gasto'?gastoOpts:ingresoOpts;
+  if(tx.cat&&tx.cat!=='Sin categorizar')sel.value=tx.cat;
   document.getElementById('modal-catpick').classList.add('open');
 }
 function cerrarCategorizador(){
