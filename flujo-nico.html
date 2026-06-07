@@ -428,58 +428,117 @@
     @keyframes txFlash{0%,100%{background:transparent;}35%{background:rgba(201,168,90,.1);}}
     .tx-flash{animation:txFlash 700ms ease both;}
 
+    /* ── DASHBOARD INICIO ── */
+    .dash{padding:calc(env(safe-area-inset-top,0px) + 22px) 0 8px;max-width:480px;margin:0 auto;}
+    .dash-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:0 20px 22px;}
+    .dash-month{font-size:26px;font-weight:600;letter-spacing:-0.02em;line-height:1.1;}
+    .dash-sub{font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
+    .dash-mnav{display:flex;gap:4px;margin-top:12px;}
+    .dash-upd{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+    .dash-upd-btn{padding:9px 13px;border-radius:0;background:none;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;font-family:var(--sans);transition:filter .15s,transform .1s,opacity .15s;white-space:nowrap;}
+    .dash-upd-btn:hover{filter:brightness(1.15);}
+    .dash-upd-btn:active{transform:scale(.97);}
+    .dash-upd-btn:disabled{opacity:.55;cursor:default;}
+    .dash-upd-meta{font-size:10px;color:var(--text2);text-align:right;}
+    .dash-upd-meta.stale{color:#F5A623;}
+
+    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);}
+    .kpi{background:var(--bg);padding:15px 18px;}
+    .kpi-lbl{font-size:10px;color:var(--text2);letter-spacing:.7px;text-transform:uppercase;margin-bottom:9px;}
+    .kpi-val{font-size:18px;font-family:var(--mono);font-weight:500;color:var(--text);letter-spacing:-.3px;}
+    .kpi-val.pos{color:#2ECC71;}
+    .kpi-val.neg{color:#E74C3C;}
+    .kpi-sub{font-size:9px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+
+    .dash-alerts{padding:16px 20px 0;display:flex;flex-direction:column;gap:8px;}
+    .dash-alert{padding:11px 13px;border-left:3px solid;font-size:12.5px;line-height:1.4;color:var(--text);display:flex;justify-content:space-between;align-items:center;gap:12px;}
+    .dash-alert.amber{background:rgba(245,166,35,.1);border-color:#F5A623;}
+    .dash-alert.red{background:rgba(231,76,60,.1);border-color:#E74C3C;}
+    .dash-alert-btn{flex-shrink:0;padding:5px 11px;border-radius:20px;background:none;border:1px solid rgba(245,166,35,.5);color:#F5A623;font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;cursor:pointer;font-family:var(--sans);transition:background .15s;}
+    .dash-alert-btn:active{background:rgba(245,166,35,.12);}
+
+    .dash-sec{padding:26px 20px 0;}
+    .dash-sec-title{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px;}
+    .donut-wrap{position:relative;width:200px;height:200px;margin:0 auto;}
+    .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+    .donut-center-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+    .donut-center-val{font-size:20px;font-family:var(--mono);font-weight:500;color:var(--text);}
+    .donut-legend{display:flex;flex-direction:column;gap:9px;margin-top:22px;}
+    .donut-leg{display:flex;align-items:center;gap:10px;font-size:12.5px;}
+    .donut-leg-dot{width:10px;height:10px;flex-shrink:0;}
+    .donut-leg-name{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .donut-leg-amt{font-family:var(--mono);color:var(--text2);flex-shrink:0;}
+
+    .bar7-wrap{height:130px;position:relative;}
+    .dash-avg{font-size:11px;color:var(--text2);margin-top:14px;text-align:center;font-family:var(--mono);}
+
+    .critica{margin:26px 20px 0;padding:17px 18px;border:1px solid var(--border2);border-left-width:3px;}
+    .critica.red{border-left-color:#E74C3C;background:rgba(231,76,60,.06);}
+    .critica.green{border-left-color:#2ECC71;background:rgba(46,204,113,.06);}
+    .critica-title{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+    .critica-text{font-size:13px;color:var(--text2);line-height:1.55;}
+    .critica-text b{color:var(--text);font-family:var(--mono);font-weight:500;}
+
     /* ── REDUCED MOTION ── */
     @media(prefers-reduced-motion:reduce){
-      .btn-submit,.banco-btn-add,.fi,.fs,.cat-row,.tx{transition:none !important;}
-      .btn-submit:hover,.banco-btn-add:hover{filter:none;}
+      .btn-submit,.banco-btn-add,.fi,.fs,.cat-row,.tx,.dash-upd-btn{transition:none !important;}
+      .btn-submit:hover,.banco-btn-add:hover,.dash-upd-btn:hover{filter:none;}
       .skeleton{animation:none !important;background:#1A1612 !important;}
       .cat-fill.over{animation:none;}
       .tx-flash{animation:none;}
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" onload="window._chartReady&&window._chartReady()"></script>
 </head>
 <body>
 
 <!-- ══════════ INICIO ══════════ -->
-<div id="s-inicio" class="screen active" style="position:relative;">
-  <button id="btn-refresh" class="btn-refresh-float" onclick="sincronizarRefresh()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-      <path d="M21 3v5h-5"/>
-      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-      <path d="M8 16H3v5"/>
-    </svg>
-  </button>
-  <div class="hero">
-    <div class="hero-label">Saldo estimado</div>
-    <div class="hero-amount" id="ini-saldo">—</div>
-    <div class="hero-meta">
-      <div class="hero-month" id="ini-month">Mayo 2026</div>
-      <div class="hero-nav">
-        <button class="hero-nav-btn" onclick="cambiarMesIni(-1)">&#8249;</button>
-        <button class="hero-nav-btn" onclick="cambiarMesIni(1)">&#8250;</button>
+<div id="s-inicio" class="screen active">
+  <div class="dash">
+    <div class="dash-head">
+      <div>
+        <div class="dash-month" id="dash-month">—</div>
+        <div class="dash-sub" id="dash-sub"></div>
+        <div class="dash-mnav">
+          <button class="hero-nav-btn" onclick="cambiarMesIni(-1)">&#8249;</button>
+          <button class="hero-nav-btn" onclick="cambiarMesIni(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="dash-upd">
+        <button class="dash-upd-btn" id="btn-refresh" onclick="sincronizarRefresh()">Actualizar banco</button>
+        <div class="dash-upd-meta" id="dash-upd-meta"></div>
       </div>
     </div>
+
+    <div class="kpi-grid" id="dash-kpis"></div>
+
+    <div class="dash-alerts" id="dash-alerts" style="display:none;"></div>
+
+    <div class="dash-sec" id="dash-donut-sec">
+      <div class="dash-sec-title">Distribución del gasto</div>
+      <div class="donut-wrap">
+        <canvas id="dash-donut"></canvas>
+        <div class="donut-center">
+          <div class="donut-center-lbl">Gasto total</div>
+          <div class="donut-center-val" id="donut-center-val">—</div>
+        </div>
+      </div>
+      <div class="donut-legend" id="donut-legend"></div>
+    </div>
+
+    <div class="dash-sec" id="dash-bar7-sec">
+      <div class="dash-sec-title">Gasto últimos 7 días</div>
+      <div class="bar7-wrap"><canvas id="dash-bar7"></canvas></div>
+      <div class="dash-avg" id="dash-avg"></div>
+    </div>
+
+    <div class="critica" id="dash-crit" style="display:none;">
+      <div class="critica-title" id="crit-title"></div>
+      <div class="critica-text" id="crit-text"></div>
+    </div>
+
+    <div style="height:16px;"></div>
   </div>
-
-  <div id="ini-alert-wrap"></div>
-
-  <div class="metrics" id="ini-metrics">
-    <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val pos" id="ini-ing">—</div><div class="metric-sub" id="ini-ing-sub">—</div></div>
-    <div class="metric"><div class="metric-label">Gastos</div><div class="metric-val neg" id="ini-gas">—</div><div class="metric-sub" id="ini-gas-sub">—</div></div>
-    <div class="metric"><div class="metric-label">Flujo neto</div><div class="metric-val" id="ini-neto">—</div><div class="metric-sub">del mes</div></div>
-  </div>
-
-  <div class="sec">Ingresos</div>
-  <div id="ini-ing-rows"></div>
-
-  <div class="sec">Gastos variables</div>
-  <div id="ini-var-rows"></div>
-
-  <div class="sec">Gastos fijos</div>
-  <div id="ini-fij-rows"></div>
-
-  <div style="height:12px;"></div>
 </div>
 
 <!-- ══════════ MODAL INFORME ══════════ -->
@@ -713,6 +772,8 @@ const TX_INICIALES=[
 // ══════════════════════════════════════
 let currentTipo='gasto',mesIni=0,mesRes=0,mesHist=0,filtroHist='todo';
 const REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+// Re-renderiza el dashboard cuando Chart.js termina de cargar desde el CDN
+window._chartReady=function(){try{const s=document.getElementById('s-inicio');if(s&&s.classList.contains('active')&&typeof renderInicio==='function')renderInicio();}catch(e){}};
 
 function loadData(){const r=localStorage.getItem('flujoNico2026');if(!r){saveData(TX_INICIALES);return TX_INICIALES;}return JSON.parse(r);}
 function saveData(t){localStorage.setItem('flujoNico2026',JSON.stringify(t));}
@@ -757,43 +818,202 @@ function cambiarMesIni(d){mesIni=Math.max(0,Math.min(7,mesIni+d));renderInicio()
 function renderInicio(){
   document.querySelectorAll('.skeleton').forEach(el=>el.classList.remove('skeleton'));
   const txs=getAll();const m=mesIni;
+
+  // ── Totales del mes ──
   let sI=SALDO_INI_MAY;
   for(let i=0;i<m;i++)sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto');
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
-  const gasR=sumGrupo(txs,PPTO.fijos,m,'gasto')+sumGrupo(txs,PPTO.variables,m,'gasto');
-  const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[m],0);
+  const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
+  const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
+  const gasR=fijR+varR;
+  const neto=ingR-gasR;
+  const saldoEst=sI+neto;
   const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
-  const neto=ingR-gasR;const sF=sI+neto;
 
-  const $s=document.getElementById('ini-saldo');
-  $s.textContent=clp(sF);$s.className='hero-amount'+(sF<0?' neg':'');
-  document.getElementById('ini-month').textContent=MONTHS_FULL[m]+(m===0?' · en curso':'');
+  // ── Fechas ──
+  const today=new Date();
+  const isCurrent=today.getFullYear()===2026&&today.getMonth()>=4&&today.getMonth()<=11&&(today.getMonth()-4)===m;
+  const daysInMonth=new Date(2026,m+5,0).getDate();
+  const dayNow=isCurrent?today.getDate():daysInMonth;
+  const daysLeft=daysInMonth-dayNow;
+  const proj=(isCurrent&&dayNow>0)?Math.round(gasR/dayNow*daysInMonth):gasR;
 
-  document.getElementById('ini-ing').textContent=clp(ingR);
-  document.getElementById('ini-ing-sub').textContent='Ppto '+clp(ingP);
-  document.getElementById('ini-gas').textContent=clp(gasR);
-  document.getElementById('ini-gas-sub').textContent='Ppto '+clp(gasP);
-  const $n=document.getElementById('ini-neto');$n.textContent=clp(neto);
-  $n.className='metric-val'+(neto>=0?' pos':' neg');
+  // ── Header ──
+  document.getElementById('dash-month').textContent=MONTHS_FULL[m];
+  document.getElementById('dash-sub').textContent=isCurrent
+    ?`Día ${dayNow} de ${daysInMonth} · ${daysLeft} ${daysLeft===1?'día restante':'días restantes'}`
+    :`Mes cerrado · ${daysInMonth} días`;
+  renderUpdMeta();
 
-  const pctG=gasP?Math.round((gasR/gasP)*100):0;
-  const $al=document.getElementById('ini-alert-wrap');
-  if(pctG>100)$al.innerHTML=`<div class="alert danger"><div class="alert-dot"></div><div>Llevas el <strong>${pctG}%</strong> del presupuesto de gastos en ${MONTHS[m]}.</div></div>`;
-  else if(pctG>80)$al.innerHTML=`<div class="alert warn"><div class="alert-dot"></div><div>Llevas el <strong>${pctG}%</strong> del presupuesto. Queda poco margen.</div></div>`;
-  else if(neto>0)$al.innerHTML=`<div class="alert ok"><div class="alert-dot"></div><div>Flujo positivo de <strong>${clp(neto)}</strong> en ${MONTHS[m]}.</div></div>`;
-  else $al.innerHTML='';
-
-  document.getElementById('ini-ing-rows').innerHTML=makeRows(txs,PPTO.ingresos,m,'ingreso');
-  document.getElementById('ini-var-rows').innerHTML=makeRows(txs,PPTO.variables,m,'gasto');
-  document.getElementById('ini-fij-rows').innerHTML=makeRows(txs,PPTO.fijos,m,'gasto');
+  // ── KPIs ──
+  const kpis=[
+    {l:'Saldo estimado',v:clp(saldoEst)},
+    {l:'Ingresos',v:clp(ingR)},
+    {l:'Gastos fijos',v:clp(fijR)},
+    {l:'Gastos variables',v:clp(varR)},
+    {l:'Flujo neto',v:clp(neto),cls:neto>=0?'pos':'neg'},
+    {l:'Proyección fin de mes',v:clp(proj),cls:(proj>gasP?'neg':'pos'),sub:isCurrent?'a este ritmo':'real'}
+  ];
+  document.getElementById('dash-kpis').innerHTML=kpis.map(k=>`
+    <div class="kpi"><div class="kpi-lbl">${k.l}</div>
+    <div class="kpi-val ${k.cls||''}">${k.v}</div>
+    ${k.sub?`<div class="kpi-sub">${k.sub}</div>`:''}</div>`).join('');
+  const nums=[saldoEst,ingR,fijR,varR,neto,proj];
+  const valEls=document.querySelectorAll('#dash-kpis .kpi-val');
   if(!REDUCED){
-    staggerMetrics();
-    animCount(document.getElementById('ini-saldo'),sF);
-    animCount(document.getElementById('ini-ing'),ingR);
-    animCount(document.getElementById('ini-gas'),gasR);
-    animCount(document.getElementById('ini-neto'),neto);
-    setTimeout(animBars,60);
+    valEls.forEach((el,i)=>animCount(el,nums[i]));
+    staggerIn([...document.querySelectorAll('#dash-kpis .kpi')],50);
   }
+
+  // ── Alertas ──
+  renderDashAlerts(txs,m);
+
+  // ── Datos de gasto por categoría ──
+  const gastoCats=[...Object.entries(PPTO.fijos),...Object.entries(PPTO.variables)];
+
+  // Dona
+  const catSums=[];
+  for(const[c,a]of gastoCats){const r=sumCat(txs,c,m,'gasto');if(r>0)catSums.push({c,r});}
+  const totalGasto=catSums.reduce((s,x)=>s+x.r,0);
+  renderDonut(catSums,totalGasto);
+
+  // Últimos 7 días
+  render7dias(txs,m,isCurrent,daysInMonth);
+
+  // Categoría crítica
+  renderCritica(gastoCats,txs,m);
+}
+
+function renderUpdMeta(){
+  const meta=document.getElementById('dash-upd-meta');if(!meta)return;
+  const url=localStorage.getItem('bancoScriptUrl');
+  if(!url){meta.textContent='Banco sin configurar';meta.className='dash-upd-meta';return;}
+  const last=parseInt(localStorage.getItem('bancoLastSync')||'0',10);
+  if(!last){meta.textContent='Nunca actualizado';meta.className='dash-upd-meta stale';return;}
+  const diff=Date.now()-last;
+  meta.textContent='Actualizado '+timeAgo(diff);
+  meta.className='dash-upd-meta'+(diff>24*3600*1000?' stale':'');
+}
+function timeAgo(ms){
+  const min=Math.floor(ms/60000);
+  if(min<1)return'recién';
+  if(min<60)return`hace ${min} min`;
+  const h=Math.floor(min/60);
+  if(h<24)return`hace ${h}h`;
+  const d=Math.floor(h/24);
+  return`hace ${d} ${d===1?'día':'días'}`;
+}
+
+function renderDashAlerts(txs,m){
+  const alerts=[];
+  const pend=txs.filter(t=>t.pendiente===true&&t.mes===m).length;
+  if(pend>0)alerts.push({type:'amber',html:`<span>${pend} ${pend===1?'movimiento sin categorizar':'movimientos sin categorizar'}</span><button class="dash-alert-btn" onclick="revisarPendientes()">Revisar</button>`});
+
+  const over=[];
+  for(const[c,a]of[...Object.entries(PPTO.fijos),...Object.entries(PPTO.variables)]){
+    const p=a[m];if(p>0){const r=sumCat(txs,c,m,'gasto');if(r>p)over.push({c,pct:Math.round(r/p*100)});}
+  }
+  over.sort((x,y)=>y.pct-x.pct);
+  over.slice(0,3).forEach(o=>alerts.push({type:'red',html:`<span>${o.c} superó el presupuesto (${o.pct}%)</span>`}));
+
+  const last=parseInt(localStorage.getItem('bancoLastSync')||'0',10);
+  if(localStorage.getItem('bancoScriptUrl')&&last&&(Date.now()-last)>48*3600*1000)
+    alerts.push({type:'amber',html:`<span>Sin actualizaciones hace más de 48h</span>`});
+
+  const $al=document.getElementById('dash-alerts');
+  if(alerts.length){
+    $al.style.display='';
+    $al.innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}">${a.html}</div>`).join('');
+  }else{$al.style.display='none';$al.innerHTML='';}
+}
+
+let _donut=null,_bar7=null;
+function renderDonut(catSums,totalGasto){
+  const sec=document.getElementById('dash-donut-sec');
+  if(!totalGasto){sec.style.display='none';if(_donut){_donut.destroy();_donut=null;}return;}
+  sec.style.display='';
+  const sorted=[...catSums].sort((a,b)=>b.r-a.r);
+  const big=sorted.filter(x=>x.r/totalGasto>=0.08).slice(0,5);
+  const segments=big.map(x=>({name:x.c,val:x.r,color:CAT_COLOR[x.c]||'#6B7280'}));
+  const otros=totalGasto-big.reduce((s,x)=>s+x.r,0);
+  if(otros>0)segments.push({name:'Otros',val:otros,color:'#555555'});
+
+  document.getElementById('donut-center-val').textContent=clp(totalGasto);
+  document.getElementById('donut-legend').innerHTML=segments.map(s=>
+    `<div class="donut-leg"><span class="donut-leg-dot" style="background:${s.color};"></span><span class="donut-leg-name">${s.name}</span><span class="donut-leg-amt">${clp(s.val)}</span></div>`).join('');
+
+  if(typeof Chart==='undefined')return;
+  if(_donut)_donut.destroy();
+  _donut=new Chart(document.getElementById('dash-donut'),{
+    type:'doughnut',
+    data:{labels:segments.map(s=>s.name),datasets:[{data:segments.map(s=>s.val),backgroundColor:segments.map(s=>s.color),borderColor:'#0A0A0A',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
+      animation:REDUCED?false:{duration:700,easing:'easeOutCubic'},
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'#1A1612',borderColor:'#3a342c',borderWidth:1,titleColor:'#F5F5F3',bodyColor:'#F5F5F3',padding:10,bodyFont:{family:"'DM Mono',monospace"},
+        callbacks:{label:ctx=>` ${clp(ctx.parsed)} · ${Math.round(ctx.parsed/totalGasto*100)}%`}
+      }}}
+  });
+}
+
+function render7dias(txs,m,isCurrent,daysInMonth){
+  const ref=isCurrent?new Date():new Date(2026,m+4,daysInMonth);
+  const dayNames=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const days=[],labels=[],sums=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate()-i);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    days.push(key);labels.push(dayNames[d.getDay()]);
+    sums.push(txs.filter(t=>t.tipo==='gasto'&&t.fecha===key).reduce((s,t)=>s+t.monto,0));
+  }
+  const maxV=Math.max(...sums);
+  const avg=Math.round(sums.reduce((s,v)=>s+v,0)/7);
+  const todayKey=`${ref.getFullYear()}-${String(ref.getMonth()+1).padStart(2,'0')}-${String(ref.getDate()).padStart(2,'0')}`;
+  const todayIdx=isCurrent?days.indexOf(todayKey):-1;
+  document.getElementById('dash-avg').textContent='Promedio diario: '+clp(avg);
+
+  if(typeof Chart==='undefined')return;
+  if(_bar7)_bar7.destroy();
+  const colors=sums.map(v=>(v===maxV&&maxV>0)?'#C9A85A':'#B5AFA7');
+  const bw=sums.map((v,i)=>i===todayIdx?{top:3,left:0,right:0,bottom:0}:0);
+  _bar7=new Chart(document.getElementById('dash-bar7'),{
+    type:'bar',
+    data:{labels,datasets:[{data:sums,backgroundColor:colors,borderColor:'#F5F5F3',borderWidth:bw,borderSkipped:false,borderRadius:0,barPercentage:.7,categoryPercentage:.8}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      animation:REDUCED?false:{duration:600,easing:'easeOutCubic'},
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'#1A1612',borderColor:'#3a342c',borderWidth:1,titleColor:'#F5F5F3',bodyColor:'#F5F5F3',padding:8,bodyFont:{family:"'DM Mono',monospace"},
+        callbacks:{label:ctx=>' '+clp(ctx.parsed.y)}
+      }},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#6E6862',font:{size:10}}},y:{display:false,beginAtZero:true}}}
+  });
+}
+
+function renderCritica(gastoCats,txs,m){
+  const card=document.getElementById('dash-crit');
+  const cands=[];
+  for(const[c,a]of gastoCats){const p=a[m];if(p<=0)continue;const r=sumCat(txs,c,m,'gasto');cands.push({c,p,r,ratio:r/p});}
+  const overs=cands.filter(x=>x.r>x.p);
+  let pick=null;
+  if(overs.length){overs.sort((x,y)=>y.ratio-x.ratio);pick=overs[0];}
+  else{const active=cands.filter(x=>x.r>0);active.sort((x,y)=>y.ratio-x.ratio);pick=active[0]||null;}
+  if(!pick){card.style.display='none';return;}
+  card.style.display='';
+  if(pick.r>pick.p){
+    const z=Math.round((pick.ratio-1)*100);
+    card.className='critica red';
+    document.getElementById('crit-title').textContent=`Atención — ${pick.c}`;
+    document.getElementById('crit-text').innerHTML=`Llevas <b>${clp(pick.r)}</b> gastados. Presupuesto: <b>${clp(pick.p)}</b>. <b>+${z}%</b> sobre lo previsto.`;
+  }else{
+    card.className='critica green';
+    document.getElementById('crit-title').textContent=`Al día — ${pick.c}`;
+    document.getElementById('crit-text').innerHTML=`Llevas <b>${clp(pick.r)}</b> gastados de <b>${clp(pick.p)}</b>. Te quedan <b>${clp(pick.p-pick.r)}</b>.`;
+  }
+}
+
+function revisarPendientes(){
+  mesHist=mesIni;
+  showScreen('historial');
 }
 
 function makeRows(txs,grupo,m,tipo){
@@ -1500,18 +1720,19 @@ function _importItems(items){
 function sincronizarRefresh(){
   const btn=document.getElementById('btn-refresh');
   const url=localStorage.getItem('bancoScriptUrl');
-  if(!url){showToast('Configura el script en "Importar del banco"',true);return;}
-  if(btn)btn.classList.add('spinning');
-  if(!REDUCED)['ini-saldo','ini-ing','ini-gas','ini-neto'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('skeleton');});
+  if(!url){abrirBanco();return;}
+  if(btn){btn.disabled=true;btn.textContent='Actualizando…';}
+  if(!REDUCED)document.querySelectorAll('#dash-kpis .kpi-val').forEach(el=>el.classList.add('skeleton'));
   fetch(url)
     .then(r=>r.json())
     .then(items=>{
       const count=_importItems(items);
+      localStorage.setItem('bancoLastSync',String(Date.now()));
+      if(btn){btn.disabled=false;btn.textContent='Actualizar banco';}
       updateBadge();renderInicio();
-      setTimeout(()=>{if(btn)btn.classList.remove('spinning');},400);
       showToast(count>0?(count===1?'1 movimiento importado':`${count} movimientos importados`):'Sin movimientos nuevos');
     })
-    .catch(()=>{if(btn)btn.classList.remove('spinning');showToast('No se pudo conectar',true);});
+    .catch(()=>{if(btn){btn.disabled=false;btn.textContent='Actualizar banco';}showToast('No se pudo conectar',true);});
 }
 function autoImportarBanco(){
   const url=localStorage.getItem('bancoScriptUrl');
@@ -1520,10 +1741,9 @@ function autoImportarBanco(){
     .then(r=>r.json())
     .then(items=>{
       const count=_importItems(items);
-      if(count>0){
-        updateBadge();renderInicio();
-        showToast(count===1?'1 movimiento del banco importado':`${count} movimientos del banco importados`);
-      }
+      localStorage.setItem('bancoLastSync',String(Date.now()));
+      updateBadge();renderInicio();
+      if(count>0)showToast(count===1?'1 movimiento del banco importado':`${count} movimientos del banco importados`);
     })
     .catch(()=>{});
 }
