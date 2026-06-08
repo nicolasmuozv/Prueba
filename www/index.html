@@ -636,10 +636,15 @@
         <div class="s-label">Movimientos</div>
         <div class="s-title">Historial</div>
       </div>
-      <button class="btn-add-res" onclick="abrirModalAgregar()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nuevo
-      </button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-export" onclick="exportarExcel()" title="Exportar CSV">
+          <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        </button>
+        <button class="btn-add-res" onclick="abrirModalAgregar()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo
+        </button>
+      </div>
     </div>
   </div>
   <div class="hist-month-nav">
@@ -882,12 +887,12 @@ const REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 // Re-renderiza el dashboard cuando Chart.js termina de cargar desde el CDN
 window._chartReady=function(){try{const s=document.getElementById('s-inicio');if(s&&s.classList.contains('active')&&typeof renderInicio==='function')renderInicio();}catch(e){}};
 
-function loadData(){const r=localStorage.getItem('flujoNico2026');if(!r){saveData(TX_INICIALES);return TX_INICIALES;}return JSON.parse(r);}
+function loadData(){const r=localStorage.getItem('flujoNico2026');if(!r){saveData(TX_INICIALES);return TX_INICIALES;}try{return JSON.parse(r);}catch(e){showToast('Error al leer datos',true);return TX_INICIALES;}}
 function saveData(t){localStorage.setItem('flujoNico2026',JSON.stringify(t));}
 function getAll(){return loadData();}
 function addTx(t){const a=getAll();a.push(t);saveData(a);}
 function deleteTx(id){saveData(getAll().filter(t=>t.id!==id));}
-function clp(n){if(n===null||n===undefined)return'—';const s='$ '+Math.abs(n).toLocaleString('es-CL');return n<0?'-'+s:s;}
+function clp(n){if(n===null||n===undefined||isNaN(n))return'—';const s='$ '+Math.abs(n).toLocaleString('es-CL');return n<0?'-'+s:s;}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function sumCat(txs,cat,mes,tipo){return txs.filter(t=>t.cat===cat&&t.mes===mes&&t.tipo===tipo).reduce((s,t)=>s+t.monto,0);}
 function sumGrupo(txs,g,mes,tipo){return Object.keys(g).reduce((s,c)=>s+sumCat(txs,c,mes,tipo),0);}
@@ -932,7 +937,8 @@ function renderInicio(){
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
   const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
-  const gasR=fijR+varR;
+  const pendGasto=txs.filter(t=>t.pendiente===true&&t.mes===m&&t.tipo==='gasto').reduce((s,t)=>s+t.monto,0);
+  const gasR=fijR+varR+pendGasto;
   const neto=ingR-gasR;
   const saldoEst=sI+neto;
   const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
@@ -1102,6 +1108,9 @@ function render7dias(txs,m,isCurrent,daysInMonth){
     topCats.push(top?top[0]:'');
   }
   const maxV=Math.max(...sums);
+  const sec7=document.getElementById('dash-bar7-sec');
+  if(!maxV){sec7.style.display='none';if(_bar7){_bar7.destroy();_bar7=null;}return;}
+  sec7.style.display='';
   const avg=Math.round(sums.reduce((s,v)=>s+v,0)/7);
   const todayKey=`${ref.getFullYear()}-${String(ref.getMonth()+1).padStart(2,'0')}-${String(ref.getDate()).padStart(2,'0')}`;
   const todayIdx=isCurrent?days.indexOf(todayKey):-1;
@@ -1204,7 +1213,9 @@ function cerrarModalAgregar(){
 function initAgregar(){
   const h=new Date();
   document.getElementById('f-fecha').value=`${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`;
-  document.getElementById('f-mes').value=detectarMes(h);
+  document.getElementById('f-mes').innerHTML=MONTHS_FULL.map((mn,i)=>`<option value="${i}">${mn}</option>`).join('');
+  const inRange=h.getFullYear()===2026&&h.getMonth()>=4&&h.getMonth()<=11;
+  if(inRange)document.getElementById('f-mes').value=detectarMes(h);
   setTipo(currentTipo);updateCats();
 }
 function setTipo(t){
@@ -1241,6 +1252,7 @@ function guardarTransaccion(){
   const active=document.querySelector('.screen.active');
   if(active&&active.id==='s-resumen')renderResumen();
   else if(active&&active.id==='s-inicio')renderInicio();
+  else if(active&&active.id==='s-historial')renderHistorial();
 }
 
 // ══════════════════════════════════════
@@ -1287,7 +1299,7 @@ function getTodayFull(){
 }
 function renderResumen(){
   const todayEl=document.getElementById('res-today');
-  if(todayEl&&!todayEl.textContent)todayEl.textContent=getTodayFull();
+  if(todayEl)todayEl.textContent=getTodayFull();
   document.getElementById('res-mes-nombre').textContent=MONTHS_FULL[mesRes];
   const txs=getAll();const m=mesRes;
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
