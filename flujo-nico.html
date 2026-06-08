@@ -518,6 +518,10 @@
     .set-total{display:flex;justify-content:space-between;align-items:center;padding:7px 20px;font-size:11px;color:var(--text2);}
     .set-total span:last-child{font-family:var(--mono);}
     .set-danger{color:var(--red) !important;}
+    .set-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .set-group-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 9px;border-bottom:1px solid var(--border);background:var(--s1);}
+    .set-group-hdr-name{font-size:10px;font-weight:700;color:var(--text2);letter-spacing:1.2px;text-transform:uppercase;}
+    .set-group-tot{font-size:12px;font-family:var(--mono);color:var(--text2);}
 
     /* ── VIÑETA FLOTANTE ── */
     @keyframes vinFadeOut{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-6px);}}
@@ -2115,15 +2119,14 @@ function guardarPpto(grupo,cat,rawVal){
   if(el)el.textContent=clp(total);
 }
 
-let _ajExp={ingresos:false,egresos:false};
-function toggleAjSec(k){_ajExp[k]=!_ajExp[k];renderAjustes();}
-
 function _setCatRows(g){
   let rows='';
   for(const[cat,arr]of Object.entries(PPTO[g])){
     const v=arr[0];
     const sc=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const dot=CAT_COLOR[cat]||'#6E6862';
     rows+=`<div class="set-row">`+
+      `<span class="set-dot" style="background:${dot};"></span>`+
       `<input class="set-name-input" type="text" value="${cat.replace(/"/g,'&quot;')}" `+
         `onblur="renameCategoria('${g}','${sc}',this.value)" `+
         `onkeydown="if(event.key==='Enter')this.blur()">`+
@@ -2140,32 +2143,26 @@ function renderAjustes(){
 
   // ── 1. Presupuesto mensual ──
   h+=`<div class="set-label">Presupuesto mensual</div>`;
-
-  // Ingresos accordion
-  const totIng=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[0],0);
-  const icoIng=_ajExp.ingresos?'▾':'▸';
   h+=`<div class="set-block">`;
-  h+=`<div class="set-row set-row-tap" onclick="toggleAjSec('ingresos')">`+
-    `<div class="set-row-label"><span style="font-family:var(--mono);font-size:11px;color:var(--text2);margin-right:8px;">${icoIng}</span>Ingresos</div>`+
-    `<div class="set-row-val" id="set-tot-ingresos">${clp(totIng)}</div></div>`;
-  if(_ajExp.ingresos){h+=_setCatRows('ingresos');}
-  h+=`</div>`;
 
-  // Egresos accordion
+  const totIng=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[0],0);
+  h+=`<div class="set-group-hdr">`+
+    `<span class="set-group-hdr-name">Ingresos</span>`+
+    `<span class="set-group-tot" id="set-tot-ingresos">${clp(totIng)}</span></div>`;
+  h+=_setCatRows('ingresos');
+
   const totFij=Object.values(PPTO.fijos).reduce((s,a)=>s+a[0],0);
+  h+=`<div class="set-group-hdr">`+
+    `<span class="set-group-hdr-name">Gastos fijos</span>`+
+    `<span class="set-group-tot" id="set-tot-fijos">${clp(totFij)}</span></div>`;
+  h+=_setCatRows('fijos');
+
   const totVar=Object.values(PPTO.variables).reduce((s,a)=>s+a[0],0);
-  const totEgr=totFij+totVar;
-  const icoEgr=_ajExp.egresos?'▾':'▸';
-  h+=`<div class="set-block" style="margin-top:1px;">`;
-  h+=`<div class="set-row set-row-tap" onclick="toggleAjSec('egresos')">`+
-    `<div class="set-row-label"><span style="font-family:var(--mono);font-size:11px;color:var(--text2);margin-right:8px;">${icoEgr}</span>Egresos</div>`+
-    `<div class="set-row-val">${clp(totEgr)}</div></div>`;
-  if(_ajExp.egresos){
-    h+=`<div class="set-sub-label" style="background:var(--s1);">Gastos fijos</div>`;
-    h+=_setCatRows('fijos');
-    h+=`<div class="set-sub-label" style="background:var(--s1);">Gastos variables</div>`;
-    h+=_setCatRows('variables');
-  }
+  h+=`<div class="set-group-hdr">`+
+    `<span class="set-group-hdr-name">Gastos variables</span>`+
+    `<span class="set-group-tot" id="set-tot-variables">${clp(totVar)}</span></div>`;
+  h+=_setCatRows('variables');
+
   h+=`</div>`;
 
   // ── 2. Cuenta y saldo ──
@@ -2214,14 +2211,14 @@ function resetearDatos(){
 
   // Mostrar "Listo" cuando el teclado aparece en inputs de Ajustes
   document.addEventListener('focusin',function(e){
-    if(e.target.classList.contains('set-input')||e.target.classList.contains('set-name-input'))
+    if(document.getElementById('s-ajustes').contains(e.target)&&e.target.tagName==='INPUT')
       document.getElementById('kbd-toolbar').classList.add('show');
   });
   document.addEventListener('focusout',function(e){
-    if(e.target.classList.contains('set-input')||e.target.classList.contains('set-name-input'))
+    if(document.getElementById('s-ajustes').contains(e.target)&&e.target.tagName==='INPUT')
       setTimeout(function(){
         const a=document.activeElement;
-        if(!a||(!a.classList.contains('set-input')&&!a.classList.contains('set-name-input')))
+        if(!a||!document.getElementById('s-ajustes').contains(a))
           document.getElementById('kbd-toolbar').classList.remove('show');
       },120);
   });
