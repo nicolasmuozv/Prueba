@@ -535,7 +535,6 @@
       </div>
       <div class="dash-upd">
         <button class="dash-upd-btn" id="btn-refresh" onclick="sincronizarRefresh()">Actualizar banco</button>
-        <button class="dash-upd-btn" style="margin-top:4px;border-color:var(--border2);color:var(--text);" onclick="abrirModalAgregar()">+ Agregar</button>
         <div class="dash-upd-meta" id="dash-upd-meta"></div>
       </div>
     </div>
@@ -578,9 +577,15 @@
 <!-- ══════════ HISTORIAL ══════════ -->
 <div id="s-historial" class="screen">
   <div class="wrap">
-    <div class="s-header">
-      <div class="s-label">Movimientos</div>
-      <div class="s-title">Historial</div>
+    <div class="s-header res-header-row">
+      <div>
+        <div class="s-label">Movimientos</div>
+        <div class="s-title">Historial</div>
+      </div>
+      <button class="btn-add-res" onclick="abrirModalAgregar()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo
+      </button>
     </div>
   </div>
   <div class="chips" id="hist-chips"></div>
@@ -956,7 +961,7 @@ function showDashVin(html,canvasId,ms){
   el.style.left=(rect.left+rect.width/2)+'px';
   el.style.top=(rect.top+rect.height/2-54)+'px';
   el.classList.add('show');
-  _vinTimer=setTimeout(()=>el.classList.remove('show'),ms||2000);
+  _vinTimer=setTimeout(()=>el.classList.remove('show'),ms||1000);
 }
 
 function renderDonut(catSums,totalGasto){
@@ -997,7 +1002,7 @@ function renderDonut(catSums,totalGasto){
           }
           html+=`</div>`;
         }
-        showDashVin(html,'dash-donut',2000);
+        showDashVin(html,'dash-donut',1000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}}}
   });
@@ -1049,7 +1054,7 @@ function render7dias(txs,m,isCurrent,daysInMonth){
             `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${cat}</span>`+
             `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(amt)}</span></div>`;
         }
-        showDashVin(html,'dash-bar7',2000);
+        showDashVin(html,'dash-bar7',1000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#6E6862',font:{size:10}}},y:{display:false,beginAtZero:true}}}
