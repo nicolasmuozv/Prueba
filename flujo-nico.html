@@ -956,7 +956,7 @@ function showDashVin(html,canvasId,ms){
   el.style.left=(rect.left+rect.width/2)+'px';
   el.style.top=(rect.top+rect.height/2-54)+'px';
   el.classList.add('show');
-  _vinTimer=setTimeout(()=>el.classList.remove('show'),ms||3000);
+  _vinTimer=setTimeout(()=>el.classList.remove('show'),ms||2000);
 }
 
 function renderDonut(catSums,totalGasto){
@@ -965,9 +965,10 @@ function renderDonut(catSums,totalGasto){
   sec.style.display='';
   const sorted=[...catSums].sort((a,b)=>b.r-a.r);
   const big=sorted.filter(x=>x.r/totalGasto>=0.08).slice(0,5);
+  const otrosCats=sorted.filter(x=>!big.includes(x));
   const segments=big.map(x=>({name:x.c,val:x.r,color:CAT_COLOR[x.c]||'#6B7280'}));
   const otros=totalGasto-big.reduce((s,x)=>s+x.r,0);
-  if(otros>0)segments.push({name:'Otros',val:otros,color:'#555555'});
+  if(otros>0)segments.push({name:'Otros',val:otros,color:'#555555',breakdown:otrosCats});
 
   document.getElementById('donut-center-val').textContent=clp(totalGasto);
   document.getElementById('donut-legend').innerHTML=segments.map(s=>
@@ -984,11 +985,19 @@ function renderDonut(catSums,totalGasto){
         if(!els.length)return;
         const seg=segments[els[0].index];
         const pct=Math.round(seg.val/totalGasto*100);
-        showDashVin(
-          `<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">${seg.name}</div>`+
+        let html=`<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">${seg.name}</div>`+
           `<div style="font-size:18px;font-family:var(--mono);color:var(--text);">${clp(seg.val)}</div>`+
-          `<div style="font-size:10px;color:var(--text2);margin-top:2px;">${pct}% del total</div>`,
-          'dash-donut',3000);
+          `<div style="font-size:10px;color:var(--text2);margin-top:2px;">${pct}% del total</div>`;
+        if(seg.breakdown&&seg.breakdown.length){
+          html+=`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">`;
+          for(const x of seg.breakdown){
+            html+=`<div style="display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:11px;">`+
+              `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${x.c}</span>`+
+              `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(x.r)}</span></div>`;
+          }
+          html+=`</div>`;
+        }
+        showDashVin(html,'dash-donut',2000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}}}
   });
@@ -1040,7 +1049,7 @@ function render7dias(txs,m,isCurrent,daysInMonth){
             `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${cat}</span>`+
             `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(amt)}</span></div>`;
         }
-        showDashVin(html,'dash-bar7',4000);
+        showDashVin(html,'dash-bar7',2000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#6E6862',font:{size:10}}},y:{display:false,beginAtZero:true}}}
