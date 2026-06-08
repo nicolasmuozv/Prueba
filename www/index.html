@@ -524,13 +524,12 @@
       </div>
       <div class="dash-upd">
         <button class="dash-upd-btn" id="btn-refresh" onclick="sincronizarRefresh()">Actualizar banco</button>
+        <button class="dash-upd-btn" style="margin-top:4px;border-color:var(--border2);color:var(--text);" onclick="abrirModalAgregar()">+ Agregar</button>
         <div class="dash-upd-meta" id="dash-upd-meta"></div>
       </div>
     </div>
 
     <div class="kpi-grid" id="dash-kpis"></div>
-
-    <div class="dash-alerts" id="dash-alerts" style="display:none;"></div>
 
     <div class="dash-sec" id="dash-donut-sec">
       <div class="donut-wrap">
@@ -548,9 +547,8 @@
       <div class="dash-avg" id="dash-avg"></div>
     </div>
 
-    <div class="critica" id="dash-crit" style="display:none;">
-      <div class="critica-title" id="crit-title"></div>
-      <div class="critica-text" id="crit-text"></div>
+    <div id="dash-popup" style="display:none;margin:16px 20px 0;background:var(--s1);border:1px solid var(--border2);padding:14px 16px;">
+      <div id="dash-popup-content"></div>
     </div>
 
     <div style="height:16px;"></div>
@@ -863,26 +861,24 @@ function renderInicio(){
   renderUpdMeta();
 
   // ── KPIs ──
+  const sueldoR=sumCat(txs,'Sueldo / Honorarios',m,'ingreso');
+  const otrosIngR=sumCat(txs,'Otros ingresos',m,'ingreso');
   const kpis=[
     {l:'Saldo estimado',v:clp(saldoEst)},
-    {l:'Ingresos',v:clp(ingR)},
-    {l:'Gastos fijos',v:clp(fijR)},
-    {l:'Gastos variables',v:clp(varR)},
-    {l:'Flujo neto',v:clp(neto),cls:neto>=0?'pos':'neg'}
+    {l:'Flujo neto',v:clp(neto),cls:neto>=0?'pos':'neg'},
+    {l:'Sueldos',v:clp(sueldoR),cls:'pos'},
+    {l:'Otros ingresos',v:clp(otrosIngR),cls:'pos'},
+    {l:'Costos fijos',v:clp(fijR)},
+    {l:'Costos variables',v:clp(varR)}
   ];
   document.getElementById('dash-kpis').innerHTML=kpis.map(k=>`
     <div class="kpi"><div class="kpi-lbl">${k.l}</div>
-    <div class="kpi-val ${k.cls||''}">${k.v}</div>
-    ${k.sub?`<div class="kpi-sub">${k.sub}</div>`:''}</div>`).join('');
-  const nums=[saldoEst,ingR,fijR,varR,neto];
-  const valEls=document.querySelectorAll('#dash-kpis .kpi-val');
+    <div class="kpi-val ${k.cls||''}">${k.v}</div></div>`).join('');
+  const nums=[saldoEst,neto,sueldoR,otrosIngR,fijR,varR];
   if(!REDUCED){
-    valEls.forEach((el,i)=>animCount(el,nums[i]));
+    document.querySelectorAll('#dash-kpis .kpi-val').forEach((el,i)=>animCount(el,nums[i]));
     staggerIn([...document.querySelectorAll('#dash-kpis .kpi')],50);
   }
-
-  // ── Alertas ──
-  renderDashAlerts(txs,m);
 
   // ── Datos de gasto por categoría ──
   const gastoCats=[...Object.entries(PPTO.fijos),...Object.entries(PPTO.variables)];
@@ -895,9 +891,6 @@ function renderInicio(){
 
   // Últimos 7 días
   render7dias(txs,m,isCurrent,daysInMonth);
-
-  // Categoría crítica
-  renderCritica(gastoCats,txs,m);
 }
 
 function renderUpdMeta(){
@@ -943,7 +936,15 @@ function renderDashAlerts(txs,m){
   }else{$al.style.display='none';$al.innerHTML='';}
 }
 
-let _donut=null,_bar7=null;
+let _donut=null,_bar7=null,_popupTimer=null;
+function showDashPopup(html,ms){
+  clearTimeout(_popupTimer);
+  const el=document.getElementById('dash-popup');
+  const ct=document.getElementById('dash-popup-content');
+  ct.innerHTML=html;el.style.display='';
+  _popupTimer=setTimeout(()=>{el.style.display='none';},ms||3000);
+}
+
 function renderDonut(catSums,totalGasto){
   const sec=document.getElementById('dash-donut-sec');
   if(!totalGasto){sec.style.display='none';if(_donut){_donut.destroy();_donut=null;}return;}
@@ -965,10 +966,17 @@ function renderDonut(catSums,totalGasto){
     data:{labels:segments.map(s=>s.name),datasets:[{data:segments.map(s=>s.val),backgroundColor:segments.map(s=>s.color),borderColor:'#0A0A0A',borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
       animation:REDUCED?false:{duration:700,easing:'easeOutCubic'},
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#1A1612',borderColor:'#3a342c',borderWidth:1,titleColor:'#F5F5F3',bodyColor:'#F5F5F3',padding:10,bodyFont:{family:"'DM Mono',monospace"},
-        callbacks:{label:ctx=>` ${clp(ctx.parsed)} · ${Math.round(ctx.parsed/totalGasto*100)}%`}
-      }}}
+      onClick:(evt,els)=>{
+        if(!els.length)return;
+        const seg=segments[els[0].index];
+        const pct=Math.round(seg.val/totalGasto*100);
+        showDashPopup(
+          `<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">${seg.name}</div>`+
+          `<div style="font-size:20px;font-family:var(--mono);color:var(--text);">${clp(seg.val)}</div>`+
+          `<div style="font-size:11px;color:var(--text2);margin-top:3px;">${pct}% del gasto total</div>`,
+          3000);
+      },
+      plugins:{legend:{display:false},tooltip:{enabled:false}}}
   });
 }
 
@@ -1002,10 +1010,26 @@ function render7dias(txs,m,isCurrent,daysInMonth){
     data:{labels,datasets:[{data:sums,backgroundColor:colors,borderColor:'#F5F5F3',borderWidth:bw,borderSkipped:false,borderRadius:0,barPercentage:.7,categoryPercentage:.8}]},
     options:{responsive:true,maintainAspectRatio:false,
       animation:REDUCED?false:{duration:600,easing:'easeOutCubic'},
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#1A1612',borderColor:'#3a342c',borderWidth:1,titleColor:'#F5F5F3',bodyColor:'#F5F5F3',padding:8,bodyFont:{family:"'DM Mono',monospace"},
-        callbacks:{label:ctx=>{const cat=topCats[ctx.dataIndex];return cat?' '+clp(ctx.parsed.y)+' — '+cat:' '+clp(ctx.parsed.y);}}
-      }},
+      onClick:(evt,els)=>{
+        if(!els.length)return;
+        const idx=els[0].index;
+        const key=days[idx];const dayLabel=labels[idx];
+        const dayTxs=txs.filter(t=>t.tipo==='gasto'&&t.fecha===key);
+        if(!dayTxs.length)return;
+        const catMap={};
+        for(const t of dayTxs)catMap[t.cat]=(catMap[t.cat]||0)+t.monto;
+        const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+        const total=sorted.reduce((s,[,v])=>s+v,0);
+        let html=`<div style="font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">${dayLabel} — ${clp(total)}</div>`;
+        for(const[cat,amt]of sorted){
+          const pct=Math.round(amt/total*100);
+          html+=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">`+
+            `<span style="color:var(--text2);">${cat}</span>`+
+            `<span style="font-family:var(--mono);color:var(--text);">${clp(amt)} <span style="color:var(--text3);font-size:10px;">${pct}%</span></span></div>`;
+        }
+        showDashPopup(html,4000);
+      },
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#6E6862',font:{size:10}}},y:{display:false,beginAtZero:true}}}
   });
 }
