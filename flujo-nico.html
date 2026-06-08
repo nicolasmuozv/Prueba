@@ -497,6 +497,17 @@
 
     .res-today{font-size:12px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
 
+    /* ── VIÑETA FLOTANTE ── */
+    .dash-vin{
+      position:fixed;z-index:300;pointer-events:none;
+      transform:translateX(-50%);
+      background:var(--s1);border:1px solid var(--border2);
+      padding:10px 15px;min-width:150px;max-width:260px;
+      opacity:0;transition:opacity .18s ease;
+      text-align:center;
+    }
+    .dash-vin.show{opacity:1;}
+
     /* ── REDUCED MOTION ── */
     @media(prefers-reduced-motion:reduce){
       .btn-submit,.banco-btn-add,.fi,.fs,.cat-row,.tx,.dash-upd-btn{transition:none !important;}
@@ -545,10 +556,6 @@
     <div class="dash-sec" id="dash-bar7-sec">
       <div class="bar7-wrap"><canvas id="dash-bar7"></canvas></div>
       <div class="dash-avg" id="dash-avg"></div>
-    </div>
-
-    <div id="dash-popup" style="display:none;margin:16px 20px 0;background:var(--s1);border:1px solid var(--border2);padding:14px 16px;">
-      <div id="dash-popup-content"></div>
     </div>
 
     <div style="height:16px;"></div>
@@ -669,6 +676,9 @@
     <button class="banco-url-reset" style="margin-top:12px;" onclick="eliminarPending()">Eliminar este movimiento</button>
   </div>
 </div>
+
+<!-- ══════════ VIÑETA FLOTANTE ══════════ -->
+<div id="dash-vin" class="dash-vin"></div>
 
 <!-- ══════════ MODAL AGREGAR ══════════ -->
 <div id="modal-agregar" class="inf-modal">
@@ -936,13 +946,17 @@ function renderDashAlerts(txs,m){
   }else{$al.style.display='none';$al.innerHTML='';}
 }
 
-let _donut=null,_bar7=null,_popupTimer=null;
-function showDashPopup(html,ms){
-  clearTimeout(_popupTimer);
-  const el=document.getElementById('dash-popup');
-  const ct=document.getElementById('dash-popup-content');
-  ct.innerHTML=html;el.style.display='';
-  _popupTimer=setTimeout(()=>{el.style.display='none';},ms||3000);
+let _donut=null,_bar7=null,_vinTimer=null;
+function showDashVin(html,canvasId,ms){
+  clearTimeout(_vinTimer);
+  const el=document.getElementById('dash-vin');
+  const canvas=document.getElementById(canvasId);
+  const rect=canvas.getBoundingClientRect();
+  el.innerHTML=html;
+  el.style.left=(rect.left+rect.width/2)+'px';
+  el.style.top=(rect.top+rect.height/2-54)+'px';
+  el.classList.add('show');
+  _vinTimer=setTimeout(()=>el.classList.remove('show'),ms||3000);
 }
 
 function renderDonut(catSums,totalGasto){
@@ -970,11 +984,11 @@ function renderDonut(catSums,totalGasto){
         if(!els.length)return;
         const seg=segments[els[0].index];
         const pct=Math.round(seg.val/totalGasto*100);
-        showDashPopup(
-          `<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">${seg.name}</div>`+
-          `<div style="font-size:20px;font-family:var(--mono);color:var(--text);">${clp(seg.val)}</div>`+
-          `<div style="font-size:11px;color:var(--text2);margin-top:3px;">${pct}% del gasto total</div>`,
-          3000);
+        showDashVin(
+          `<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">${seg.name}</div>`+
+          `<div style="font-size:18px;font-family:var(--mono);color:var(--text);">${clp(seg.val)}</div>`+
+          `<div style="font-size:10px;color:var(--text2);margin-top:2px;">${pct}% del total</div>`,
+          'dash-donut',3000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}}}
   });
@@ -1020,14 +1034,13 @@ function render7dias(txs,m,isCurrent,daysInMonth){
         for(const t of dayTxs)catMap[t.cat]=(catMap[t.cat]||0)+t.monto;
         const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
         const total=sorted.reduce((s,[,v])=>s+v,0);
-        let html=`<div style="font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">${dayLabel} — ${clp(total)}</div>`;
+        let html=`<div style="font-size:10px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${dayLabel} — ${clp(total)}</div>`;
         for(const[cat,amt]of sorted){
-          const pct=Math.round(amt/total*100);
-          html+=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">`+
-            `<span style="color:var(--text2);">${cat}</span>`+
-            `<span style="font-family:var(--mono);color:var(--text);">${clp(amt)} <span style="color:var(--text3);font-size:10px;">${pct}%</span></span></div>`;
+          html+=`<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:11px;">`+
+            `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${cat}</span>`+
+            `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(amt)}</span></div>`;
         }
-        showDashPopup(html,4000);
+        showDashVin(html,'dash-bar7',4000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#6E6862',font:{size:10}}},y:{display:false,beginAtZero:true}}}
