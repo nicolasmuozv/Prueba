@@ -497,6 +497,28 @@
 
     .res-today{font-size:12px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
 
+    /* ── HISTORIAL NAV REDISEÑO ── */
+    .hist-month-nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px 16px;}
+    .hist-tipo{display:flex;gap:1px;background:var(--border2);margin:0 20px 16px;border:1px solid var(--border2);}
+    .hist-tipo-btn{flex:1;padding:9px 4px;background:var(--s1);border:none;color:var(--text2);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--sans);letter-spacing:.5px;text-transform:uppercase;transition:background .15s,color .15s;}
+    .hist-tipo-btn.active{background:var(--s3);color:var(--text);}
+    .hist-tipo-btn.gold{color:var(--gold);}
+
+    /* ── AJUSTES ── */
+    .set-label{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;padding:22px 20px 8px;}
+    .set-sub-label{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:14px 20px 6px;}
+    .set-block{border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+    .set-row{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);background:var(--s1);}
+    .set-row:last-child{border-bottom:none;}
+    .set-row-tap{cursor:pointer;transition:background .1s;}
+    .set-row-tap:active{background:var(--s3);}
+    .set-row-label{flex:1;font-size:14px;color:var(--text);font-weight:400;}
+    .set-row-val{font-size:12px;color:var(--text2);font-family:var(--mono);}
+    .set-input{background:none;border:none;color:var(--text);font-family:var(--mono);font-size:14px;text-align:right;min-width:100px;max-width:140px;outline:none;padding:0;}
+    .set-total{display:flex;justify-content:space-between;align-items:center;padding:7px 20px;font-size:11px;color:var(--text2);}
+    .set-total span:last-child{font-family:var(--mono);}
+    .set-danger{color:var(--red) !important;}
+
     /* ── VIÑETA FLOTANTE ── */
     .dash-vin{
       position:fixed;z-index:300;pointer-events:none;
@@ -595,14 +617,16 @@
       </button>
     </div>
   </div>
-  <div class="chips" id="hist-chips"></div>
-  <div class="filter-row" style="justify-content:space-between;">
-    <div style="display:flex;gap:6px;">
-      <button class="f-btn active" id="fb-todo" onclick="setFiltro('todo')">Todos</button>
-      <button class="f-btn" id="fb-gasto" onclick="setFiltro('gasto')">Gastos</button>
-      <button class="f-btn" id="fb-ingreso" onclick="setFiltro('ingreso')">Ingresos</button>
-    </div>
-    <button class="f-btn" onclick="abrirReglas()" style="border-color:rgba(201,168,90,.3);color:var(--gold);">Reglas</button>
+  <div class="hist-month-nav">
+    <button class="m-nav-btn" onclick="setMesHist(mesHist-1)">&#8249;</button>
+    <span class="m-nav-title" id="hist-mes-label"></span>
+    <button class="m-nav-btn" onclick="setMesHist(mesHist+1)">&#8250;</button>
+  </div>
+  <div class="hist-tipo">
+    <button class="hist-tipo-btn active" id="fb-todo" onclick="setFiltro('todo')">Todos</button>
+    <button class="hist-tipo-btn" id="fb-gasto" onclick="setFiltro('gasto')">Gastos</button>
+    <button class="hist-tipo-btn" id="fb-ingreso" onclick="setFiltro('ingreso')">Ingresos</button>
+    <button class="hist-tipo-btn gold" onclick="abrirReglas()">Reglas</button>
   </div>
   <div id="hist-lista"></div>
 </div>
@@ -726,6 +750,17 @@
   </div>
 </div>
 
+<!-- ══════════ AJUSTES ══════════ -->
+<div id="s-ajustes" class="screen">
+  <div class="wrap">
+    <div class="s-header">
+      <div class="s-label">Configuración</div>
+      <div class="s-title">Ajustes</div>
+    </div>
+  </div>
+  <div id="ajustes-body"></div>
+</div>
+
 <!-- ── BOTTOM NAV ── -->
 <nav class="nav">
   <div class="nav-row">
@@ -746,6 +781,12 @@
         <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </div>
       Resumen
+    </button>
+    <button class="nav-btn" id="nb-ajustes" onclick="showScreen('ajustes')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </div>
+      Ajustes
     </button>
   </div>
 </nav>
@@ -832,7 +873,7 @@ function fillColor(p){if(p<70)return'#3ECF8E';if(p<95)return'#C8A96E';if(p<110)r
 //  NAVEGACIÓN
 // ══════════════════════════════════════
 function showScreen(n){
-  const screens=['inicio','historial','resumen'];
+  const screens=['inicio','historial','resumen','ajustes'];
   const prev=screens.find(x=>document.getElementById('s-'+x).classList.contains('active'));
   function doSwitch(){
     screens.forEach(x=>{
@@ -842,6 +883,7 @@ function showScreen(n){
     if(n==='inicio')renderInicio();
     if(n==='historial')renderHistorial();
     if(n==='resumen')renderResumen();
+    if(n==='ajustes')renderAjustes();
   }
   if(!REDUCED&&prev&&prev!==n){screenTransition(prev,doSwitch);}
   else{doSwitch();}
@@ -857,7 +899,7 @@ function renderInicio(){
   const txs=getAll();const m=mesIni;
 
   // ── Totales del mes ──
-  let sI=SALDO_INI_MAY;
+  let sI=getSaldoIni();
   for(let i=0;i<m;i++)sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto');
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
@@ -945,18 +987,6 @@ function renderDashAlerts(txs,m){
   const alerts=[];
   const pend=txs.filter(t=>t.pendiente===true&&t.mes===m).length;
   if(pend>0)alerts.push({type:'amber',html:`<span>${pend} ${pend===1?'movimiento sin categorizar':'movimientos sin categorizar'}</span><button class="dash-alert-btn" onclick="revisarPendientes()">Revisar</button>`});
-
-  const over=[];
-  for(const[c,a]of[...Object.entries(PPTO.fijos),...Object.entries(PPTO.variables)]){
-    const p=a[m];if(p>0){const r=sumCat(txs,c,m,'gasto');if(r>p)over.push({c,pct:Math.round(r/p*100)});}
-  }
-  over.sort((x,y)=>y.pct-x.pct);
-  over.slice(0,3).forEach(o=>alerts.push({type:'red',html:`<span>${o.c} superó el presupuesto (${o.pct}%)</span>`}));
-
-  const last=parseInt(localStorage.getItem('bancoLastSync')||'0',10);
-  if(localStorage.getItem('bancoScriptUrl')&&last&&(Date.now()-last)>48*3600*1000)
-    alerts.push({type:'amber',html:`<span>Sin actualizaciones hace más de 48h</span>`});
-
   const $al=document.getElementById('dash-alerts');
   if(alerts.length){
     $al.style.display='';
@@ -1182,7 +1212,8 @@ function guardarTransaccion(){
 //  HISTORIAL
 // ══════════════════════════════════════
 function renderHistorial(){
-  document.getElementById('hist-chips').innerHTML=MONTHS.map((mn,i)=>`<div class="chip${i===mesHist?' active':''}" onclick="setMesHist(${i})">${mn}</div>`).join('');
+  const lbl=document.getElementById('hist-mes-label');
+  if(lbl)lbl.textContent=MONTHS_FULL[mesHist];
   const txs=getAll().filter(t=>t.mes===mesHist).filter(t=>filtroHist==='todo'||t.tipo===filtroHist).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const $l=document.getElementById('hist-lista');
   if(!txs.length){$l.innerHTML='<div class="empty">Sin movimientos en este mes</div>';return;}
@@ -1205,7 +1236,7 @@ function renderHistorial(){
     staggerIn(rows.slice(0,15),30);
   }
 }
-function setMesHist(i){mesHist=i;renderHistorial();}
+function setMesHist(i){mesHist=Math.max(0,Math.min(7,i));renderHistorial();}
 function setFiltro(f){filtroHist=f;['todo','gasto','ingreso'].forEach(x=>document.getElementById('fb-'+x).classList.toggle('active',x===f));renderHistorial();}
 function confirmarBorrar(id,desc){if(confirm(`¿Eliminar "${desc}"?`)){deleteTx(id);renderHistorial();showToast('Eliminado');}}
 
@@ -2011,9 +2042,83 @@ function screenTransition(fromId,toFn){
 }
 
 // ══════════════════════════════════════
+//  AJUSTES
+// ══════════════════════════════════════
+function getSaldoIni(){const s=localStorage.getItem('ww_saldo_ini');return s!==null?parseInt(s,10):SALDO_INI_MAY;}
+function guardarSaldoIni(rawVal){localStorage.setItem('ww_saldo_ini',String(parseInt(rawVal.replace(/\D/g,''),10)||0));}
+
+function loadPptoOverrides(){
+  const s=localStorage.getItem('ww_ppto');if(!s)return;
+  try{const o=JSON.parse(s);for(const g of['ingresos','fijos','variables']){if(!o[g])continue;for(const[c,v]of Object.entries(o[g])){if(PPTO[g][c]&&Array.isArray(v))PPTO[g][c]=v;}}}catch(e){}
+}
+function savePptoState(){localStorage.setItem('ww_ppto',JSON.stringify({ingresos:PPTO.ingresos,fijos:PPTO.fijos,variables:PPTO.variables}));}
+function guardarPpto(grupo,cat,rawVal){
+  const n=parseInt(rawVal.replace(/\D/g,''),10)||0;
+  for(let i=0;i<8;i++)PPTO[grupo][cat][i]=n;
+  savePptoState();
+  const total=Object.values(PPTO[grupo]).reduce((s,a)=>s+a[0],0);
+  const el=document.getElementById('set-tot-'+grupo);
+  if(el)el.textContent=clp(total);
+}
+
+function renderAjustes(){
+  const $b=document.getElementById('ajustes-body');if(!$b)return;
+  let h='';
+
+  // ── 1. Presupuesto mensual ──
+  h+=`<div class="set-label">Presupuesto mensual</div>`;
+  const grupos=[['ingresos','Ingresos'],['fijos','Gastos fijos'],['variables','Gastos variables']];
+  for(const[g,gLbl]of grupos){
+    h+=`<div class="set-sub-label">${gLbl}</div><div class="set-block">`;
+    let tot=0;
+    for(const[cat,arr]of Object.entries(PPTO[g])){
+      const v=arr[0];tot+=v;
+      const sc=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      h+=`<div class="set-row"><div class="set-row-label">${cat}</div>`+
+        `<input class="set-input" type="text" value="${v.toLocaleString('es-CL')}" inputmode="numeric" `+
+        `oninput="fmtMonto(this)" onblur="guardarPpto('${g}','${sc}',this.value)"></div>`;
+    }
+    h+=`</div><div class="set-total"><span>Total ${gLbl.toLowerCase()}</span><span id="set-tot-${g}">${clp(tot)}</span></div>`;
+  }
+
+  // ── 2. Cuenta y saldo ──
+  h+=`<div class="set-label">Cuenta y saldo</div><div class="set-block">`;
+  const sI=getSaldoIni();
+  h+=`<div class="set-row"><div class="set-row-label">Saldo inicial (mayo 2026)</div>`+
+    `<input class="set-input" type="text" value="${sI.toLocaleString('es-CL')}" inputmode="numeric" `+
+    `oninput="fmtMonto(this)" onblur="guardarSaldoIni(this.value)"></div>`;
+  h+=`</div>`;
+
+  // ── 3. Banco y sincronización ──
+  h+=`<div class="set-label">Banco y sincronización</div><div class="set-block">`;
+  const bUrl=localStorage.getItem('bancoScriptUrl')||'';
+  const bLast=parseInt(localStorage.getItem('bancoLastSync')||'0',10);
+  h+=`<div class="set-row set-row-tap" onclick="abrirBanco()"><div class="set-row-label">Configurar script de Gmail</div><div class="set-row-val">${bUrl?'Conectado':'Sin configurar'} ›</div></div>`;
+  if(bUrl)h+=`<div class="set-row set-row-tap" onclick="sincronizarRefresh()"><div class="set-row-label">Sincronizar ahora</div><div class="set-row-val">${bLast?timeAgo(Date.now()-bLast):'—'} ›</div></div>`;
+  h+=`</div>`;
+
+  // ── 4. Datos ──
+  h+=`<div class="set-label">Datos</div><div class="set-block">`;
+  h+=`<div class="set-row set-row-tap" onclick="exportarExcel()"><div class="set-row-label">Exportar a CSV</div><div class="set-row-val">›</div></div>`;
+  h+=`<div class="set-row set-row-tap" onclick="resetearDatos()"><div class="set-row-label set-danger">Borrar todos los datos</div></div>`;
+  h+=`</div><div style="height:32px;"></div>`;
+
+  $b.innerHTML=h;
+}
+
+function resetearDatos(){
+  if(!confirm('¿Borrar todos los movimientos? Esta acción no se puede deshacer.'))return;
+  localStorage.removeItem('flujoNico2026');
+  localStorage.removeItem('bancoLastSync');
+  showToast('Datos borrados');
+  renderInicio();
+}
+
+// ══════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════
 (function(){
+  loadPptoOverrides();
   const h=new Date();mesIni=mesRes=mesHist=detectarMes(h);
   loadData();renderInicio();
   updateBadge();
