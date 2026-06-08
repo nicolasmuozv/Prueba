@@ -520,15 +520,36 @@
     .set-danger{color:var(--red) !important;}
 
     /* ── VIÑETA FLOTANTE ── */
+    @keyframes vinFadeOut{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-6px);}}
     .dash-vin{
       position:fixed;z-index:300;pointer-events:none;
-      transform:translateX(-50%);
       background:var(--s1);border:1px solid var(--border2);
-      padding:10px 15px;min-width:150px;max-width:260px;
-      opacity:0;transition:opacity .18s ease;
-      text-align:center;
+      padding:10px 15px;min-width:140px;max-width:250px;
+      opacity:0;text-align:left;
     }
-    .dash-vin.show{opacity:1;}
+    .dash-vin.show{opacity:1;transition:opacity .18s ease;}
+    .dash-vin.hiding{animation:vinFadeOut .35s ease forwards;}
+
+    /* ── KEYBOARD TOOLBAR ── */
+    #kbd-toolbar{
+      position:fixed;bottom:0;left:0;right:0;z-index:350;
+      background:var(--s1);border-top:1px solid var(--border2);
+      padding:8px 20px;display:none;justify-content:flex-end;align-items:center;
+    }
+    #kbd-toolbar.show{display:flex;}
+    #kbd-btn-listo{
+      padding:8px 22px;background:var(--gold);border:none;
+      color:#0A0A0A;font-size:13px;font-weight:700;
+      cursor:pointer;font-family:var(--sans);letter-spacing:.5px;text-transform:uppercase;
+    }
+
+    /* ── SET NAME INPUT ── */
+    .set-name-input{
+      flex:1;background:none;border:none;border-bottom:1px solid transparent;
+      color:var(--text);font-size:14px;outline:none;padding:0;min-width:0;
+      font-family:var(--sans);transition:border-color .15s;
+    }
+    .set-name-input:focus{border-bottom-color:var(--gold);}
 
     /* ── REDUCED MOTION ── */
     @media(prefers-reduced-motion:reduce){
@@ -791,6 +812,7 @@
   </div>
 </nav>
 
+<div id="kbd-toolbar"><button id="kbd-btn-listo" onclick="document.activeElement&&document.activeElement.blur()">Listo ✓</button></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -807,6 +829,8 @@ const PPTO={
   variables:{'Bencina':[150000,150000,150000,150000,150000,150000,150000,150000],'Alimentación':[60000,60000,60000,60000,60000,60000,60000,60000],'Salidas / Restaurantes':[80000,80000,80000,80000,80000,80000,80000,80000],'Ropa y vestuario':[50000,50000,50000,50000,50000,50000,50000,50000],'Salud / Farmacia':[20000,20000,20000,20000,20000,20000,20000,20000],'Movilización (peaje/uber)':[15000,15000,15000,15000,15000,15000,15000,15000],'Mantención vehículo':[200000,0,0,200000,0,0,200000,0],'Imprevistos':[50000,50000,50000,50000,50000,50000,50000,50000]},
   ahorro:{}
 };
+
+const DONUT_PAL=['#C9A85A','#8A6E3A','#E8C97A','#B5AFA7','#3ECF8E','#6E6862','#D4A850','#9B8A6A','#EF6461'];
 
 const CAT_COLOR={
   'Sin categorizar':'#F59E0B',
@@ -995,16 +1019,23 @@ function renderDashAlerts(txs,m){
 }
 
 let _donut=null,_bar7=null,_vinTimer=null;
-function showDashVin(html,canvasId,ms){
+function showDashVin(html,x,y,ms){
   clearTimeout(_vinTimer);
   const el=document.getElementById('dash-vin');
-  const canvas=document.getElementById(canvasId);
-  const rect=canvas.getBoundingClientRect();
+  el.classList.remove('show','hiding');
   el.innerHTML=html;
-  el.style.left=(rect.left+rect.width/2)+'px';
-  el.style.top=(rect.top+rect.height/2-54)+'px';
+  // Position near tap, clamped to viewport
+  const vw=window.innerWidth;
+  const estW=220;
+  const cx=Math.min(Math.max(x-estW/2,8),vw-estW-8);
+  const cy=Math.max(y-90,80);
+  el.style.left=cx+'px';el.style.top=cy+'px';
+  void el.offsetWidth;
   el.classList.add('show');
-  _vinTimer=setTimeout(()=>el.classList.remove('show'),ms||1000);
+  _vinTimer=setTimeout(()=>{
+    el.classList.add('hiding');
+    setTimeout(()=>el.classList.remove('show','hiding'),350);
+  },ms||1000);
 }
 
 function renderDonut(catSums,totalGasto){
@@ -1014,9 +1045,9 @@ function renderDonut(catSums,totalGasto){
   const sorted=[...catSums].sort((a,b)=>b.r-a.r);
   const big=sorted.filter(x=>x.r/totalGasto>=0.08).slice(0,5);
   const otrosCats=sorted.filter(x=>!big.includes(x));
-  const segments=big.map(x=>({name:x.c,val:x.r,color:CAT_COLOR[x.c]||'#6B7280'}));
+  const segments=big.map((x,i)=>({name:x.c,val:x.r,color:DONUT_PAL[i%DONUT_PAL.length]}));
   const otros=totalGasto-big.reduce((s,x)=>s+x.r,0);
-  if(otros>0)segments.push({name:'Otros',val:otros,color:'#555555',breakdown:otrosCats});
+  if(otros>0)segments.push({name:'Otros',val:otros,color:DONUT_PAL[segments.length%DONUT_PAL.length],breakdown:otrosCats});
 
   document.getElementById('donut-center-val').textContent=clp(totalGasto);
   document.getElementById('donut-legend').innerHTML=segments.map(s=>
@@ -1045,7 +1076,7 @@ function renderDonut(catSums,totalGasto){
           }
           html+=`</div>`;
         }
-        showDashVin(html,'dash-donut',1000);
+        showDashVin(html,evt.native.clientX,evt.native.clientY,1000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}}}
   });
@@ -1097,7 +1128,7 @@ function render7dias(txs,m,isCurrent,daysInMonth){
             `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${cat}</span>`+
             `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(amt)}</span></div>`;
         }
-        showDashVin(html,'dash-bar7',1000);
+        showDashVin(html,evt.native.clientX,evt.native.clientY,1000);
       },
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#6E6862',font:{size:10}}},y:{display:false,beginAtZero:true}}}
@@ -2049,7 +2080,30 @@ function guardarSaldoIni(rawVal){localStorage.setItem('ww_saldo_ini',String(pars
 
 function loadPptoOverrides(){
   const s=localStorage.getItem('ww_ppto');if(!s)return;
-  try{const o=JSON.parse(s);for(const g of['ingresos','fijos','variables']){if(!o[g])continue;for(const[c,v]of Object.entries(o[g])){if(PPTO[g][c]&&Array.isArray(v))PPTO[g][c]=v;}}}catch(e){}
+  try{
+    const o=JSON.parse(s);
+    for(const g of['ingresos','fijos','variables']){
+      if(!o[g])continue;
+      Object.keys(PPTO[g]).forEach(k=>delete PPTO[g][k]);
+      Object.assign(PPTO[g],o[g]);
+    }
+  }catch(e){}
+}
+
+function renameCategoria(grupo,oldName,newName){
+  newName=newName.trim();
+  if(!newName||newName===oldName)return;
+  if(PPTO[grupo][newName]!==undefined){showToast('Ese nombre ya existe',true);return;}
+  const entries=Object.entries(PPTO[grupo]).map(([k,v])=>[k===oldName?newName:k,v]);
+  Object.keys(PPTO[grupo]).forEach(k=>delete PPTO[grupo][k]);
+  for(const[k,v]of entries)PPTO[grupo][k]=v;
+  savePptoState();
+  const txs=getAll();
+  for(const t of txs){if(t.cat===oldName)t.cat=newName;}
+  saveData(txs);
+  if(CAT_COLOR[oldName]){CAT_COLOR[newName]=CAT_COLOR[oldName];delete CAT_COLOR[oldName];}
+  showToast('Categoría renombrada');
+  renderAjustes();
 }
 function savePptoState(){localStorage.setItem('ww_ppto',JSON.stringify({ingresos:PPTO.ingresos,fijos:PPTO.fijos,variables:PPTO.variables}));}
 function guardarPpto(grupo,cat,rawVal){
@@ -2061,32 +2115,66 @@ function guardarPpto(grupo,cat,rawVal){
   if(el)el.textContent=clp(total);
 }
 
+let _ajExp={ingresos:false,egresos:false};
+function toggleAjSec(k){_ajExp[k]=!_ajExp[k];renderAjustes();}
+
+function _setCatRows(g){
+  let rows='';
+  for(const[cat,arr]of Object.entries(PPTO[g])){
+    const v=arr[0];
+    const sc=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    rows+=`<div class="set-row">`+
+      `<input class="set-name-input" type="text" value="${cat.replace(/"/g,'&quot;')}" `+
+        `onblur="renameCategoria('${g}','${sc}',this.value)" `+
+        `onkeydown="if(event.key==='Enter')this.blur()">`+
+      `<input class="set-input" type="text" value="${v.toLocaleString('es-CL')}" inputmode="numeric" `+
+        `oninput="fmtMonto(this)" onblur="guardarPpto('${g}','${sc}',this.value)" `+
+        `onkeydown="if(event.key==='Enter')this.blur()"></div>`;
+  }
+  return rows;
+}
+
 function renderAjustes(){
   const $b=document.getElementById('ajustes-body');if(!$b)return;
   let h='';
 
   // ── 1. Presupuesto mensual ──
   h+=`<div class="set-label">Presupuesto mensual</div>`;
-  const grupos=[['ingresos','Ingresos'],['fijos','Gastos fijos'],['variables','Gastos variables']];
-  for(const[g,gLbl]of grupos){
-    h+=`<div class="set-sub-label">${gLbl}</div><div class="set-block">`;
-    let tot=0;
-    for(const[cat,arr]of Object.entries(PPTO[g])){
-      const v=arr[0];tot+=v;
-      const sc=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      h+=`<div class="set-row"><div class="set-row-label">${cat}</div>`+
-        `<input class="set-input" type="text" value="${v.toLocaleString('es-CL')}" inputmode="numeric" `+
-        `oninput="fmtMonto(this)" onblur="guardarPpto('${g}','${sc}',this.value)"></div>`;
-    }
-    h+=`</div><div class="set-total"><span>Total ${gLbl.toLowerCase()}</span><span id="set-tot-${g}">${clp(tot)}</span></div>`;
+
+  // Ingresos accordion
+  const totIng=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[0],0);
+  const icoIng=_ajExp.ingresos?'▾':'▸';
+  h+=`<div class="set-block">`;
+  h+=`<div class="set-row set-row-tap" onclick="toggleAjSec('ingresos')">`+
+    `<div class="set-row-label"><span style="font-family:var(--mono);font-size:11px;color:var(--text2);margin-right:8px;">${icoIng}</span>Ingresos</div>`+
+    `<div class="set-row-val" id="set-tot-ingresos">${clp(totIng)}</div></div>`;
+  if(_ajExp.ingresos){h+=_setCatRows('ingresos');}
+  h+=`</div>`;
+
+  // Egresos accordion
+  const totFij=Object.values(PPTO.fijos).reduce((s,a)=>s+a[0],0);
+  const totVar=Object.values(PPTO.variables).reduce((s,a)=>s+a[0],0);
+  const totEgr=totFij+totVar;
+  const icoEgr=_ajExp.egresos?'▾':'▸';
+  h+=`<div class="set-block" style="margin-top:1px;">`;
+  h+=`<div class="set-row set-row-tap" onclick="toggleAjSec('egresos')">`+
+    `<div class="set-row-label"><span style="font-family:var(--mono);font-size:11px;color:var(--text2);margin-right:8px;">${icoEgr}</span>Egresos</div>`+
+    `<div class="set-row-val">${clp(totEgr)}</div></div>`;
+  if(_ajExp.egresos){
+    h+=`<div class="set-sub-label" style="background:var(--s1);">Gastos fijos</div>`;
+    h+=_setCatRows('fijos');
+    h+=`<div class="set-sub-label" style="background:var(--s1);">Gastos variables</div>`;
+    h+=_setCatRows('variables');
   }
+  h+=`</div>`;
 
   // ── 2. Cuenta y saldo ──
   h+=`<div class="set-label">Cuenta y saldo</div><div class="set-block">`;
   const sI=getSaldoIni();
   h+=`<div class="set-row"><div class="set-row-label">Saldo inicial (mayo 2026)</div>`+
     `<input class="set-input" type="text" value="${sI.toLocaleString('es-CL')}" inputmode="numeric" `+
-    `oninput="fmtMonto(this)" onblur="guardarSaldoIni(this.value)"></div>`;
+    `oninput="fmtMonto(this)" onblur="guardarSaldoIni(this.value)" `+
+    `onkeydown="if(event.key==='Enter')this.blur()"></div>`;
   h+=`</div>`;
 
   // ── 3. Banco y sincronización ──
@@ -2123,6 +2211,20 @@ function resetearDatos(){
   loadData();renderInicio();
   updateBadge();
   setTimeout(autoImportarBanco,1200);
+
+  // Mostrar "Listo" cuando el teclado aparece en inputs de Ajustes
+  document.addEventListener('focusin',function(e){
+    if(e.target.classList.contains('set-input')||e.target.classList.contains('set-name-input'))
+      document.getElementById('kbd-toolbar').classList.add('show');
+  });
+  document.addEventListener('focusout',function(e){
+    if(e.target.classList.contains('set-input')||e.target.classList.contains('set-name-input'))
+      setTimeout(function(){
+        const a=document.activeElement;
+        if(!a||(!a.classList.contains('set-input')&&!a.classList.contains('set-name-input')))
+          document.getElementById('kbd-toolbar').classList.remove('show');
+      },120);
+  });
 })();
 </script>
 </body>
