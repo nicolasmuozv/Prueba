@@ -766,12 +766,7 @@
     <div class="fg"><label>Fecha</label><input class="fi" type="date" id="f-fecha"></div>
     <div class="fg">
       <label>Mes del flujo</label>
-      <select class="fs" id="f-mes">
-        <option value="0">Mayo 2026</option><option value="1">Junio 2026</option>
-        <option value="2">Julio 2026</option><option value="3">Agosto 2026</option>
-        <option value="4">Septiembre 2026</option><option value="5">Octubre 2026</option>
-        <option value="6">Noviembre 2026</option><option value="7">Diciembre 2026</option>
-      </select>
+      <select class="fs" id="f-mes"></select>
     </div>
     <div class="fg"><label>Categoría</label><select class="fs" id="f-cat"></select></div>
     <div class="fg"><label>Descripción</label><input class="fi" type="text" id="f-desc" placeholder="Ej: Almuerzo, bencina..."></div>
@@ -933,7 +928,10 @@ function renderInicio(){
 
   // ── Totales del mes ──
   let sI=getSaldoIni();
-  for(let i=0;i<m;i++)sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto');
+  for(let i=0;i<m;i++){
+    const pendPrev=txs.filter(t=>t.pendiente===true&&t.mes===i&&t.tipo==='gasto').reduce((s,t)=>s+t.monto,0);
+    sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto')-pendPrev;
+  }
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
   const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
@@ -1264,7 +1262,23 @@ function renderHistorial(){
   const txs=getAll().filter(t=>t.mes===mesHist).filter(t=>filtroHist==='todo'||t.tipo===filtroHist).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const $l=document.getElementById('hist-lista');
   if(!txs.length){$l.innerHTML='<div class="empty">Sin movimientos en este mes</div>';return;}
-  $l.innerHTML=txs.slice(0,200).map(t=>{
+
+  function fechaLabel(fecha){
+    const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha||'');
+    if(!p)return fecha||'Sin fecha';
+    const d=new Date(+p[1],+p[2]-1,+p[3]);
+    if(isNaN(d.getTime()))return fecha;
+    const hoy=new Date();
+    const dayMs=(a)=>new Date(a.getFullYear(),a.getMonth(),a.getDate()).getTime();
+    const diff=Math.round((dayMs(hoy)-dayMs(d))/86400000);
+    if(diff===0)return'Hoy';
+    if(diff===1)return'Ayer';
+    const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return`${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+  }
+
+  function txRow(t){
     const pend=t.pendiente===true;
     const col=pend?'#F59E0B':(CAT_COLOR[t.cat]||'#6B7280');
     const catLabel=pend?`<span style="color:#F59E0B;font-weight:500;">Sin categorizar</span>`:t.cat;
@@ -1277,7 +1291,25 @@ function renderHistorial(){
     </div>
     <button class="tx-del" onclick="event.stopPropagation();confirmarBorrar('${t.id}','${t.desc.replace(/'/g,"\\'")}')">&#10005;</button>
   </div>`;
-  }).join('');
+  }
+
+  // Agrupar por fecha manteniendo el orden descendente
+  const grupos=[];
+  for(const t of txs.slice(0,200)){
+    const g=grupos[grupos.length-1];
+    if(g&&g.fecha===t.fecha)g.items.push(t);
+    else grupos.push({fecha:t.fecha,items:[t]});
+  }
+  let h='';
+  for(const g of grupos){
+    h+=`<div style="padding:16px 20px 6px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6E6862;">${fechaLabel(g.fecha)}</div>`;
+    h+=g.items.map(txRow).join('');
+    const neto=g.items.reduce((s,t)=>s+(t.tipo==='ingreso'?t.monto:-t.monto),0);
+    h+=`<div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:6px 20px 0;font-size:11px;">`+
+      `<span style="color:#6E6862;">Total día</span>`+
+      `<span style="font-family:var(--mono);color:var(--gold);">${clp(neto)}</span></div>`;
+  }
+  $l.innerHTML=h;
   if(!REDUCED){
     const rows=[...$l.querySelectorAll('.tx')];
     staggerIn(rows.slice(0,15),30);
@@ -1324,8 +1356,8 @@ function renderResumen(){
 
   let html='<div style="display:flex;justify-content:flex-end;padding:0 20px 4px;font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;"><span style="min-width:80px;text-align:right;">Ppto</span><span style="min-width:80px;text-align:right;">Real</span></div>';
   html+=fila('Ingresos','','',false,true);
-  for(const[c,a]of Object.entries(PPTO.ingresos))html+=fila(c,sumCat(txs,c,m,'ingreso'),a[m]);
   html+=fila('Total ingresos',ingR,ingP,true);
+  for(const[c,a]of Object.entries(PPTO.ingresos))html+=fila(c,sumCat(txs,c,m,'ingreso'),a[m]);
   html+=fila('Gastos fijos','','',false,true);
   for(const[c,a]of Object.entries(PPTO.fijos))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m]);
   html+=fila('Subtotal fijos',fijR,fijP,true);
