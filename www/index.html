@@ -295,18 +295,29 @@
     .tx-del:active{color:var(--red);}
 
     /* ── RESUMEN ── */
-    .res-sec{padding:20px 20px 8px;font-size:10px;font-weight:600;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;}
-    .res-row{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--border);font-size:13px;}
-    .res-row:last-child{border-bottom:none;}
-    .res-name{color:var(--text2);flex:1;font-weight:400;}
-    .res-ppto{color:var(--text2);text-align:right;min-width:80px;font-size:11px;font-family:var(--mono);}
-    .res-real{font-weight:500;text-align:right;min-width:80px;font-family:var(--mono);}
-    .res-total-row{
-      display:flex;justify-content:space-between;align-items:center;
-      padding:13px 20px;background:var(--s1);
-      border-top:1px solid var(--border2);border-bottom:1px solid var(--border);
-      font-size:13px;font-weight:600;
-    }
+    .rz-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);}
+    .rz-sum-cell{background:var(--bg);padding:14px 14px;}
+    .rz-sum-lbl{font-size:9px;color:var(--text2);letter-spacing:.7px;text-transform:uppercase;margin-bottom:7px;}
+    .rz-sum-val{font-size:15px;font-family:var(--mono);font-weight:500;letter-spacing:-.3px;color:var(--text);}
+    .rz-sum-val.pos{color:#2ECC71;}
+    .rz-sum-val.neg{color:#E74C3C;}
+    .rz-card{margin:14px 16px 0;border:1px solid var(--border);background:var(--s1);}
+    .rz-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 16px 10px;}
+    .rz-card-title{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:1.2px;text-transform:uppercase;}
+    .rz-card-tot{font-size:13px;font-family:var(--mono);color:var(--text);}
+    .rz-card-tot small{color:var(--text3);font-size:11px;}
+    .rz-item{padding:11px 16px;border-top:1px solid var(--border);cursor:pointer;transition:background .12s;}
+    .rz-item:active{background:var(--s3);}
+    .rz-item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+    .rz-item-name{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);min-width:0;overflow:hidden;}
+    .rz-item-name span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .rz-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .rz-item-spent{font-family:var(--mono);font-size:13px;color:var(--text);flex-shrink:0;}
+    .rz-item-bot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px;}
+    .rz-item-pct{font-size:10px;font-family:var(--mono);color:var(--text2);}
+    .rz-item-left{font-size:11px;font-family:var(--mono);color:var(--text2);}
+    .rz-item-left.over{color:var(--red);}
+    .rz-item-left.done{color:var(--green);}
 
     /* ── MONTH NAV (resumen) ── */
     .m-nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px 20px;}
@@ -1378,39 +1389,67 @@ function renderResumen(){
 
   const $al=document.getElementById('res-alert-wrap');
   if(netoR<0)$al.innerHTML=`<div class="alert danger" style="margin-bottom:8px;"><div class="alert-dot"></div><div>Flujo negativo de <strong>${clp(netoR)}</strong></div></div>`;
-  else if(netoR>=netoP)$al.innerHTML=`<div class="alert ok" style="margin-bottom:8px;"><div class="alert-dot"></div><div>Flujo mejor que el presupuestado</div></div>`;
+  else if(netoP>0&&netoR>=netoP)$al.innerHTML=`<div class="alert ok" style="margin-bottom:8px;"><div class="alert-dot"></div><div>Flujo mejor que el presupuestado</div></div>`;
   else $al.innerHTML='';
 
-  function fila(n,r,p,isTotal=false,isSec=false,cat=null,tipo=null){
-    if(isSec)return`<div class="res-sec">${n}</div>`;
-    if(isTotal){const c=r>=p?'var(--green)':'var(--red)';return`<div class="res-total-row"><span>${n}</span><span style="color:var(--text3);font-size:11px;font-weight:400;">${clp(p)}</span><span style="color:${c};">${clp(r)}</span></div>`;}
-    if(cat){
-      const pct=p?Math.min(Math.round((r/p)*100),100):(r>0?100:0);
-      const isOver=p>0&&r>p;
-      const barCol=tipo==='ingreso'?(CAT_COLOR[cat]||'#6B7280'):fillColor(pct);
-      return`<div class="res-row" onclick="resumenDetalleCat(event,'${String(cat).replace(/'/g,"\\'")}','${tipo}')" style="cursor:pointer;">`+
-        `<div style="flex:1;min-width:0;">`+
-          `<span class="res-name">${n}</span>`+
-          `<div class="cat-track" style="margin-top:6px;"><div class="cat-fill${isOver?' over':''}" style="width:${REDUCED?pct:0}%;background:${barCol};" data-target="${pct}"></div></div>`+
-        `</div>`+
-        `<span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
-    }
-    return`<div class="res-row"><span class="res-name">${n}</span><span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
-  }
+  let html=`<div class="rz-summary">`+
+    `<div class="rz-sum-cell"><div class="rz-sum-lbl">Ingresos</div><div class="rz-sum-val pos">${clp(ingR)}</div></div>`+
+    `<div class="rz-sum-cell"><div class="rz-sum-lbl">Gastos</div><div class="rz-sum-val neg">${clp(gasR)}</div></div>`+
+    `<div class="rz-sum-cell"><div class="rz-sum-lbl">Neto</div><div class="rz-sum-val ${netoR>=0?'pos':'neg'}">${clp(netoR)}</div></div>`+
+  `</div>`;
 
-  let html='<div style="display:flex;justify-content:flex-end;padding:0 20px 4px;font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;"><span style="min-width:80px;text-align:right;">Ppto</span><span style="min-width:80px;text-align:right;">Real</span></div>';
-  html+=fila('Ingresos','','',false,true);
-  html+=fila('Total ingresos',ingR,ingP,true);
-  for(const[c,a]of Object.entries(PPTO.ingresos))html+=fila(c,sumCat(txs,c,m,'ingreso'),a[m],false,false,c,'ingreso');
-  html+=fila('Gastos fijos','','',false,true);
-  for(const[c,a]of Object.entries(PPTO.fijos))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m],false,false,c,'gasto');
-  html+=fila('Subtotal fijos',fijR,fijP,true);
-  html+=fila('Gastos variables','','',false,true);
-  for(const[c,a]of Object.entries(PPTO.variables))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m],false,false,c,'gasto');
-  html+=fila('Subtotal variables',varR,varP,true);
-  html+=fila('Flujo neto del mes',netoR,netoP,true);
+  html+=resSectionCard('Ingresos','ingreso',PPTO.ingresos,ingR,ingP,m,txs);
+  html+=resSectionCard('Gastos fijos','gasto',PPTO.fijos,fijR,fijP,m,txs);
+  html+=resSectionCard('Gastos variables','gasto',PPTO.variables,varR,varP,m,txs);
+  html+=`<div style="height:24px;"></div>`;
+
   document.getElementById('res-tabla').innerHTML=html;
   animBars();
+}
+
+function resSectionCard(title,tipo,grupo,real,ppto,m,txs){
+  const rawSec=ppto?Math.round(real/ppto*100):0;
+  const pctSec=Math.min(rawSec,100);
+  const secBarCol=tipo==='ingreso'?'var(--gold)':fillColor(rawSec);
+  let items='';
+  for(const[cat,arr]of Object.entries(grupo)){
+    const r=sumCat(txs,cat,m,tipo),p=arr[m];
+    if(p===0&&r===0)continue;
+    items+=resCatItem(cat,tipo,r,p);
+  }
+  if(!items)items=`<div style="padding:14px 16px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);">Sin movimientos este mes</div>`;
+  return`<div class="rz-card">`+
+    `<div class="rz-card-head"><span class="rz-card-title">${title}</span>`+
+      `<span class="rz-card-tot">${clp(real)} <small>de ${clp(ppto)}</small></span></div>`+
+    `<div class="cat-track" style="margin:0 16px 4px;"><div class="cat-fill" style="width:${REDUCED?pctSec:0}%;background:${secBarCol};" data-target="${pctSec}"></div></div>`+
+    items+
+  `</div>`;
+}
+
+function resCatItem(cat,tipo,r,p){
+  const rawPct=p?Math.round(r/p*100):0;
+  const pct=Math.min(rawPct,100);
+  const isOver=p>0&&r>p;
+  const col=CAT_COLOR[cat]||'#6B7280';
+  const barCol=tipo==='ingreso'?col:fillColor(rawPct);
+  let left;
+  if(tipo==='ingreso'){
+    if(p<=0)left=`<span class="rz-item-left">Sin meta</span>`;
+    else if(r>=p)left=`<span class="rz-item-left done">Completo</span>`;
+    else left=`<span class="rz-item-left">Faltan ${clp(p-r)}</span>`;
+  }else{
+    if(p<=0)left=`<span class="rz-item-left">Sin presupuesto</span>`;
+    else if(isOver)left=`<span class="rz-item-left over">Excedido ${clp(r-p)}</span>`;
+    else left=`<span class="rz-item-left">Quedan ${clp(p-r)}</span>`;
+  }
+  const pctLabel=p?`${rawPct}% de ${clp(p)}`:'—';
+  const sc=String(cat).replace(/'/g,"\\'");
+  return`<div class="rz-item" onclick="resumenDetalleCat(event,'${sc}','${tipo}')">`+
+    `<div class="rz-item-top"><span class="rz-item-name"><span class="rz-dot" style="background:${col};"></span><span>${cat}</span></span>`+
+      `<span class="rz-item-spent">${clp(r)}</span></div>`+
+    `<div class="cat-track"><div class="cat-fill${isOver?' over':''}" style="width:${REDUCED?pct:0}%;background:${barCol};" data-target="${pct}"></div></div>`+
+    `<div class="rz-item-bot"><span class="rz-item-pct">${pctLabel}</span>${left}</div>`+
+  `</div>`;
 }
 
 function resumenDetalleCat(evt,cat,tipo){
