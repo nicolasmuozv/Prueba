@@ -995,6 +995,17 @@ function renderInicio(){
   renderCritica(gastoCats,txs,m);
 }
 
+function bancoUrl(params){
+  const base=localStorage.getItem('bancoScriptUrl')||'';
+  if(!base)return'';
+  const keys=Object.keys(params);
+  if(!keys.length)return base;
+  const qs=keys.map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&');
+  return base+(base.includes('?')?'&':'?')+qs;
+}
+
+let _statusCache=null,_statusCacheTs=0;
+
 function renderUpdMeta(){
   const meta=document.getElementById('dash-upd-meta');if(!meta)return;
   const url=localStorage.getItem('bancoScriptUrl');
@@ -1004,6 +1015,28 @@ function renderUpdMeta(){
   const diff=Date.now()-last;
   meta.textContent='Actualizado '+timeAgo(diff);
   meta.className='dash-upd-meta'+(diff>24*3600*1000?' stale':'');
+  // Consulta status al script (caché 5 min en memoria)
+  const now=Date.now();
+  if(_statusCache&&now-_statusCacheTs<5*60*1000){_applyStatusMeta(meta,_statusCache,diff);return;}
+  fetch(bancoUrl({action:'status'}))
+    .then(r=>r.json())
+    .then(s=>{if(s&&!s.error){_statusCache=s;_statusCacheTs=Date.now();_applyStatusMeta(meta,s,diff);}})
+    .catch(()=>{});
+}
+function _applyStatusMeta(meta,s,syncDiff){
+  if(s.lastRun&&Date.now()-s.lastRun>3600*1000){
+    const h=Math.round((Date.now()-s.lastRun)/3600000);
+    meta.textContent='Script detenido hace '+h+'h';
+    meta.className='dash-upd-meta stale';
+    return;
+  }
+  if(s.fallidos>0){
+    meta.textContent='Actualizado '+timeAgo(syncDiff)+' · '+s.fallidos+' emails no reconocidos';
+    meta.className='dash-upd-meta stale';
+    return;
+  }
+  meta.textContent='Actualizado '+timeAgo(syncDiff);
+  meta.className='dash-upd-meta'+(syncDiff>24*3600*1000?' stale':'');
 }
 function timeAgo(ms){
   const min=Math.floor(ms/60000);
@@ -1863,7 +1896,8 @@ function abrirCategorizador(id){
   _catId=id;
   const color=tx.tipo==='gasto'?'var(--red)':'var(--green)';
   const sign=tx.tipo==='gasto'?'−':'+';
-  document.getElementById('catpick-meta').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${clp(tx.monto)}</span>`;
+  const dupWarn=tx.posibleDup?`<div style="color:#F59E0B;font-size:12px;margin-top:6px;font-family:var(--sans);">Posible duplicado — verifica antes de guardar</div>`:'';
+  document.getElementById('catpick-meta').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${clp(tx.monto)}</span>${dupWarn}`;
   document.getElementById('catpick-fecha').value=normFecha(tx.fecha);
   document.getElementById('catpick-desc').value=tx.desc;
   const sel=document.getElementById('catpick-sel');
@@ -1918,17 +1952,22 @@ function detectarMesFromFecha(fecha){
 }
 function _importItems(items){
   if(!items.length)return 0;
-  const url=localStorage.getItem('bancoScriptUrl')||'';
   const txs=getAll();
   const existingIds=new Set(txs.filter(t=>t.bancoId).map(t=>t.bancoId));
   let count=0;
+  const confirmedIds=[];
   for(const tx of items){
     if(existingIds.has(tx.id))continue;
     const mes=detectarMesFromFecha(tx.fecha);
     const autoCat=applyRule(tx.desc,tx.tipo);
-    addTx({id:uid(),fecha:tx.fecha,desc:tx.desc,monto:tx.monto,cat:autoCat||'Sin categorizar',tipo:tx.tipo,mes,pendiente:!autoCat,bancoId:tx.id});
-    if(url)fetch(url+'?action=confirm&id='+encodeURIComponent(tx.id)).catch(()=>{});
+    const forcePend=tx.posibleDup===true;
+    addTx({id:uid(),fecha:tx.fecha,desc:tx.desc,monto:tx.monto,cat:autoCat||'Sin categorizar',tipo:tx.tipo,mes,pendiente:!autoCat||forcePend,bancoId:tx.id,posibleDup:tx.posibleDup||false});
+    confirmedIds.push(tx.id);
     count++;
+  }
+  if(confirmedIds.length){
+    const cu=bancoUrl({action:'confirm',ids:confirmedIds.join(',')});
+    if(cu)fetch(cu).catch(()=>{});
   }
   return count;
 }
@@ -1938,7 +1977,7 @@ function sincronizarRefresh(){
   if(!url){abrirBanco();return;}
   if(btn){btn.disabled=true;btn.textContent='Actualizando…';}
   if(!REDUCED)document.querySelectorAll('#dash-kpis .kpi-val').forEach(el=>el.classList.add('skeleton'));
-  fetch(url)
+  fetch(bancoUrl({}))
     .then(r=>r.json())
     .then(items=>{
       const count=_importItems(items);
@@ -1952,7 +1991,7 @@ function sincronizarRefresh(){
 function autoImportarBanco(){
   const url=localStorage.getItem('bancoScriptUrl');
   if(!url)return;
-  fetch(url)
+  fetch(bancoUrl({}))
     .then(r=>r.json())
     .then(items=>{
       const count=_importItems(items);
@@ -2005,7 +2044,7 @@ function sincronizarAhora(btn){
   const url=localStorage.getItem('bancoScriptUrl');
   if(!url)return;
   if(btn)btn.textContent='Buscando...';
-  fetch(url)
+  fetch(bancoUrl({}))
     .then(r=>r.json())
     .then(items=>{
       const count=_importItems(items);
@@ -2252,6 +2291,12 @@ function resetearDatos(){
   loadData();renderInicio();
   updateBadge();
   setTimeout(autoImportarBanco,1200);
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible'){
+      const last=parseInt(localStorage.getItem('bancoLastSync')||'0',10);
+      if(Date.now()-last>10*60*1000)autoImportarBanco();
+    }
+  });
 
   // Mostrar "Listo" cuando el teclado aparece en inputs de Ajustes
   document.addEventListener('focusin',function(e){
