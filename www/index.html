@@ -1384,8 +1384,18 @@ function renderResumen(){
   function fila(n,r,p,isTotal=false,isSec=false,cat=null,tipo=null){
     if(isSec)return`<div class="res-sec">${n}</div>`;
     if(isTotal){const c=r>=p?'var(--green)':'var(--red)';return`<div class="res-total-row"><span>${n}</span><span style="color:var(--text3);font-size:11px;font-weight:400;">${clp(p)}</span><span style="color:${c};">${clp(r)}</span></div>`;}
-    const tap=cat?` onclick="resumenDetalleCat(event,'${String(cat).replace(/'/g,"\\'")}','${tipo}')" style="cursor:pointer;"`:'';
-    return`<div class="res-row"${tap}><span class="res-name">${n}</span><span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
+    if(cat){
+      const pct=p?Math.min(Math.round((r/p)*100),100):(r>0?100:0);
+      const isOver=p>0&&r>p;
+      const barCol=tipo==='ingreso'?(CAT_COLOR[cat]||'#6B7280'):fillColor(pct);
+      return`<div class="res-row" onclick="resumenDetalleCat(event,'${String(cat).replace(/'/g,"\\'")}','${tipo}')" style="cursor:pointer;">`+
+        `<div style="flex:1;min-width:0;">`+
+          `<span class="res-name">${n}</span>`+
+          `<div class="cat-track" style="margin-top:6px;"><div class="cat-fill${isOver?' over':''}" style="width:${REDUCED?pct:0}%;background:${barCol};" data-target="${pct}"></div></div>`+
+        `</div>`+
+        `<span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
+    }
+    return`<div class="res-row"><span class="res-name">${n}</span><span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
   }
 
   let html='<div style="display:flex;justify-content:flex-end;padding:0 20px 4px;font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;"><span style="min-width:80px;text-align:right;">Ppto</span><span style="min-width:80px;text-align:right;">Real</span></div>';
@@ -1400,6 +1410,7 @@ function renderResumen(){
   html+=fila('Subtotal variables',varR,varP,true);
   html+=fila('Flujo neto del mes',netoR,netoP,true);
   document.getElementById('res-tabla').innerHTML=html;
+  animBars();
 }
 
 function resumenDetalleCat(evt,cat,tipo){
@@ -1420,8 +1431,7 @@ function resumenDetalleCat(evt,cat,tipo){
       `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(t.monto)}</span></div>`;
   }
   if(list.length>shown.length)html+=`<div style="font-size:10px;color:var(--text3);margin-top:6px;">y ${list.length-shown.length} más</div>`;
-  const ms=Math.min(6000,Math.max(2800,1500+list.length*450));
-  showDashVin(html,x,y,ms);
+  showDashVin(html,x,y,2000);
 }
 
 // ══════════════════════════════════════
