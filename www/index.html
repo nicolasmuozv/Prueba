@@ -294,31 +294,6 @@
     .tx-del{background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;padding:6px 4px;flex-shrink:0;transition:color .15s;}
     .tx-del:active{color:var(--red);}
 
-    /* ── RESUMEN ── */
-    .rz-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);}
-    .rz-sum-cell{background:var(--bg);padding:14px 14px;}
-    .rz-sum-lbl{font-size:9px;color:var(--text2);letter-spacing:.7px;text-transform:uppercase;margin-bottom:7px;}
-    .rz-sum-val{font-size:15px;font-family:var(--mono);font-weight:500;letter-spacing:-.3px;color:var(--text);}
-    .rz-sum-val.pos{color:#2ECC71;}
-    .rz-sum-val.neg{color:#E74C3C;}
-    .rz-card{margin:14px 16px 0;border:1px solid var(--border);background:var(--s1);}
-    .rz-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 16px 10px;}
-    .rz-card-title{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:1.2px;text-transform:uppercase;}
-    .rz-card-tot{font-size:13px;font-family:var(--mono);color:var(--text);}
-    .rz-card-tot small{color:var(--text3);font-size:11px;}
-    .rz-item{padding:11px 16px;border-top:1px solid var(--border);cursor:pointer;transition:background .12s;}
-    .rz-item:active{background:var(--s3);}
-    .rz-item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
-    .rz-item-name{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);min-width:0;overflow:hidden;}
-    .rz-item-name span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .rz-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-    .rz-item-spent{font-family:var(--mono);font-size:13px;color:var(--text);flex-shrink:0;}
-    .rz-item-bot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px;}
-    .rz-item-pct{font-size:10px;font-family:var(--mono);color:var(--text2);}
-    .rz-item-left{font-size:11px;font-family:var(--mono);color:var(--text2);}
-    .rz-item-left.over{color:var(--red);}
-    .rz-item-left.done{color:var(--green);}
-
     /* ── MONTH NAV (resumen) ── */
     .m-nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px 20px;}
     .m-nav-btn{width:32px;height:32px;border-radius:0;background:var(--s1);border:1px solid var(--border2);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
@@ -506,8 +481,6 @@
     .btn-add-res:active{transform:scale(.96);}
     .btn-add-res svg{flex-shrink:0;}
 
-    .res-today{font-size:12px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
-
     /* ── HISTORIAL NAV REDISEÑO ── */
     .hist-month-nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px 16px;}
     .hist-tipo{display:flex;gap:1px;background:var(--border2);margin:0 20px 16px;border:1px solid var(--border2);}
@@ -673,13 +646,12 @@
 </div>
 
 <!-- ══════════ RESUMEN ══════════ -->
-<div id="s-resumen" class="screen">
+<div id="s-resumen" class="screen" style="position:relative;">
   <div class="wrap">
     <div class="s-header res-header-row">
       <div>
         <div class="s-label">Análisis mensual</div>
         <div class="s-title">Resumen</div>
-        <div class="res-today" id="res-today"></div>
       </div>
       <button class="btn-add-res" onclick="abrirModalAgregar()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -687,13 +659,29 @@
       </button>
     </div>
   </div>
-  <div class="m-nav">
-    <button class="m-nav-btn" onclick="cambiarMesRes(-1)">&#8249;</button>
-    <span class="m-nav-title" id="res-mes-nombre"></span>
-    <button class="m-nav-btn" onclick="cambiarMesRes(1)">&#8250;</button>
+  <div class="hero">
+    <div class="hero-label">Gastos del mes</div>
+    <div class="hero-amount" id="res-hero-amt">—</div>
+    <div class="hero-meta">
+      <div class="hero-month" id="res-mes-nombre">Mayo 2026</div>
+      <div class="hero-nav">
+        <button class="hero-nav-btn" onclick="cambiarMesRes(-1)">&#8249;</button>
+        <button class="hero-nav-btn" onclick="cambiarMesRes(1)">&#8250;</button>
+      </div>
+    </div>
   </div>
   <div id="res-alert-wrap"></div>
-  <div id="res-tabla"></div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val pos" id="res-ing">—</div><div class="metric-sub" id="res-ing-sub">—</div></div>
+    <div class="metric"><div class="metric-label">Flujo neto</div><div class="metric-val" id="res-neto">—</div><div class="metric-sub">del mes</div></div>
+  </div>
+  <div class="sec">Gastos variables</div>
+  <div id="res-var-rows"></div>
+  <div class="sec">Gastos fijos</div>
+  <div id="res-fij-rows"></div>
+  <div class="sec">Ingresos</div>
+  <div id="res-ing-rows"></div>
+  <div style="height:24px;"></div>
 </div>
 
 <!-- ══════════ MODAL DETALLE CAT ══════════ -->
@@ -1367,110 +1355,42 @@ function confirmarBorrar(id,desc){if(confirm(`¿Eliminar "${desc}"?`)){deleteTx(
 //  RESUMEN
 // ══════════════════════════════════════
 function cambiarMesRes(d){mesRes=Math.max(0,Math.min(7,mesRes+d));renderResumen();}
-function getTodayFull(){
-  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const d=new Date();
-  return`${days[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
-}
 function renderResumen(){
-  const todayEl=document.getElementById('res-today');
-  if(todayEl)todayEl.textContent=getTodayFull();
   document.getElementById('res-mes-nombre').textContent=MONTHS_FULL[mesRes];
   const txs=getAll();const m=mesRes;
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
   const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
   const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[m],0);
-  const fijP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0);
-  const varP=Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
-  const gasR=fijR+varR;const gasP=fijP+varP;
-  const netoR=ingR-gasR;const netoP=ingP-gasP;
+  const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
+  const gasR=fijR+varR;
+  const netoR=ingR-gasR;
 
+  document.getElementById('res-hero-amt').textContent=clp(gasR);
+
+  const pctG=gasP?Math.round(gasR/gasP*100):0;
   const $al=document.getElementById('res-alert-wrap');
-  if(netoR<0)$al.innerHTML=`<div class="alert danger" style="margin-bottom:8px;"><div class="alert-dot"></div><div>Flujo negativo de <strong>${clp(netoR)}</strong></div></div>`;
-  else if(netoP>0&&netoR>=netoP)$al.innerHTML=`<div class="alert ok" style="margin-bottom:8px;"><div class="alert-dot"></div><div>Flujo mejor que el presupuestado</div></div>`;
+  if(pctG>100)$al.innerHTML=`<div class="alert danger"><div class="alert-dot"></div><div>Llevas el <strong>${pctG}%</strong> del presupuesto de gastos.</div></div>`;
+  else if(pctG>80)$al.innerHTML=`<div class="alert warn"><div class="alert-dot"></div><div>Llevas el <strong>${pctG}%</strong> del presupuesto. Queda poco margen.</div></div>`;
+  else if(netoR>0)$al.innerHTML=`<div class="alert ok"><div class="alert-dot"></div><div>Flujo positivo de <strong>${clp(netoR)}</strong> este mes.</div></div>`;
   else $al.innerHTML='';
 
-  let html=`<div class="rz-summary">`+
-    `<div class="rz-sum-cell"><div class="rz-sum-lbl">Ingresos</div><div class="rz-sum-val pos">${clp(ingR)}</div></div>`+
-    `<div class="rz-sum-cell"><div class="rz-sum-lbl">Gastos</div><div class="rz-sum-val neg">${clp(gasR)}</div></div>`+
-    `<div class="rz-sum-cell"><div class="rz-sum-lbl">Neto</div><div class="rz-sum-val ${netoR>=0?'pos':'neg'}">${clp(netoR)}</div></div>`+
-  `</div>`;
+  document.getElementById('res-ing').textContent=clp(ingR);
+  document.getElementById('res-ing-sub').textContent='Ppto '+clp(ingP);
+  const $n=document.getElementById('res-neto');
+  $n.textContent=clp(netoR);$n.className='metric-val'+(netoR>=0?' pos':' neg');
 
-  html+=resSectionCard('Ingresos','ingreso',PPTO.ingresos,ingR,ingP,m,txs);
-  html+=resSectionCard('Gastos fijos','gasto',PPTO.fijos,fijR,fijP,m,txs);
-  html+=resSectionCard('Gastos variables','gasto',PPTO.variables,varR,varP,m,txs);
-  html+=`<div style="height:24px;"></div>`;
+  document.getElementById('res-var-rows').innerHTML=makeRows(txs,PPTO.variables,m,'gasto');
+  document.getElementById('res-fij-rows').innerHTML=makeRows(txs,PPTO.fijos,m,'gasto');
+  document.getElementById('res-ing-rows').innerHTML=makeRows(txs,PPTO.ingresos,m,'ingreso');
 
-  document.getElementById('res-tabla').innerHTML=html;
-  animBars();
-}
-
-function resSectionCard(title,tipo,grupo,real,ppto,m,txs){
-  const rawSec=ppto?Math.round(real/ppto*100):0;
-  const pctSec=Math.min(rawSec,100);
-  const secBarCol=tipo==='ingreso'?'var(--gold)':fillColor(rawSec);
-  let items='';
-  for(const[cat,arr]of Object.entries(grupo)){
-    const r=sumCat(txs,cat,m,tipo),p=arr[m];
-    if(p===0&&r===0)continue;
-    items+=resCatItem(cat,tipo,r,p);
+  if(!REDUCED){
+    staggerMetrics();
+    animCount(document.getElementById('res-hero-amt'),gasR);
+    animCount(document.getElementById('res-ing'),ingR);
+    animCount(document.getElementById('res-neto'),netoR);
+    setTimeout(animBars,60);
   }
-  if(!items)items=`<div style="padding:14px 16px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);">Sin movimientos este mes</div>`;
-  return`<div class="rz-card">`+
-    `<div class="rz-card-head"><span class="rz-card-title">${title}</span>`+
-      `<span class="rz-card-tot">${clp(real)} <small>de ${clp(ppto)}</small></span></div>`+
-    `<div class="cat-track" style="margin:0 16px 4px;"><div class="cat-fill" style="width:${REDUCED?pctSec:0}%;background:${secBarCol};" data-target="${pctSec}"></div></div>`+
-    items+
-  `</div>`;
-}
-
-function resCatItem(cat,tipo,r,p){
-  const rawPct=p?Math.round(r/p*100):0;
-  const pct=Math.min(rawPct,100);
-  const isOver=p>0&&r>p;
-  const col=CAT_COLOR[cat]||'#6B7280';
-  const barCol=tipo==='ingreso'?col:fillColor(rawPct);
-  let left;
-  if(tipo==='ingreso'){
-    if(p<=0)left=`<span class="rz-item-left">Sin meta</span>`;
-    else if(r>=p)left=`<span class="rz-item-left done">Completo</span>`;
-    else left=`<span class="rz-item-left">Faltan ${clp(p-r)}</span>`;
-  }else{
-    if(p<=0)left=`<span class="rz-item-left">Sin presupuesto</span>`;
-    else if(isOver)left=`<span class="rz-item-left over">Excedido ${clp(r-p)}</span>`;
-    else left=`<span class="rz-item-left">Quedan ${clp(p-r)}</span>`;
-  }
-  const pctLabel=p?`${rawPct}% de ${clp(p)}`:'—';
-  const sc=String(cat).replace(/'/g,"\\'");
-  return`<div class="rz-item" onclick="resumenDetalleCat(event,'${sc}','${tipo}')">`+
-    `<div class="rz-item-top"><span class="rz-item-name"><span class="rz-dot" style="background:${col};"></span><span>${cat}</span></span>`+
-      `<span class="rz-item-spent">${clp(r)}</span></div>`+
-    `<div class="cat-track"><div class="cat-fill${isOver?' over':''}" style="width:${REDUCED?pct:0}%;background:${barCol};" data-target="${pct}"></div></div>`+
-    `<div class="rz-item-bot"><span class="rz-item-pct">${pctLabel}</span>${left}</div>`+
-  `</div>`;
-}
-
-function resumenDetalleCat(evt,cat,tipo){
-  const m=mesRes;
-  const list=getAll().filter(t=>t.cat===cat&&t.mes===m&&t.tipo===tipo).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  const x=evt&&evt.clientX!=null?evt.clientX:window.innerWidth/2;
-  const y=evt&&evt.clientY!=null?evt.clientY:200;
-  if(!list.length){
-    showDashVin(`<div style="font-size:11px;color:var(--text2);">Sin movimientos en ${cat}</div>`,x,y,1800);
-    return;
-  }
-  const total=list.reduce((s,t)=>s+t.monto,0);
-  let html=`<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">${cat} · ${list.length} ${list.length===1?'mov':'movs'} · ${clp(total)}</div>`;
-  const shown=list.slice(0,8);
-  for(const t of shown){
-    html+=`<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:11px;">`+
-      `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${t.desc}</span>`+
-      `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(t.monto)}</span></div>`;
-  }
-  if(list.length>shown.length)html+=`<div style="font-size:10px;color:var(--text3);margin-top:6px;">y ${list.length-shown.length} más</div>`;
-  showDashVin(html,x,y,2000);
 }
 
 // ══════════════════════════════════════
