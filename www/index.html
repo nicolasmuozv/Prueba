@@ -1381,24 +1381,47 @@ function renderResumen(){
   else if(netoR>=netoP)$al.innerHTML=`<div class="alert ok" style="margin-bottom:8px;"><div class="alert-dot"></div><div>Flujo mejor que el presupuestado</div></div>`;
   else $al.innerHTML='';
 
-  function fila(n,r,p,isTotal=false,isSec=false){
+  function fila(n,r,p,isTotal=false,isSec=false,cat=null,tipo=null){
     if(isSec)return`<div class="res-sec">${n}</div>`;
     if(isTotal){const c=r>=p?'var(--green)':'var(--red)';return`<div class="res-total-row"><span>${n}</span><span style="color:var(--text3);font-size:11px;font-weight:400;">${clp(p)}</span><span style="color:${c};">${clp(r)}</span></div>`;}
-    return`<div class="res-row"><span class="res-name">${n}</span><span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
+    const tap=cat?` onclick="resumenDetalleCat(event,'${String(cat).replace(/'/g,"\\'")}','${tipo}')" style="cursor:pointer;"`:'';
+    return`<div class="res-row"${tap}><span class="res-name">${n}</span><span class="res-ppto">${clp(p)}</span><span class="res-real">${clp(r)}</span></div>`;
   }
 
   let html='<div style="display:flex;justify-content:flex-end;padding:0 20px 4px;font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;"><span style="min-width:80px;text-align:right;">Ppto</span><span style="min-width:80px;text-align:right;">Real</span></div>';
   html+=fila('Ingresos','','',false,true);
   html+=fila('Total ingresos',ingR,ingP,true);
-  for(const[c,a]of Object.entries(PPTO.ingresos))html+=fila(c,sumCat(txs,c,m,'ingreso'),a[m]);
+  for(const[c,a]of Object.entries(PPTO.ingresos))html+=fila(c,sumCat(txs,c,m,'ingreso'),a[m],false,false,c,'ingreso');
   html+=fila('Gastos fijos','','',false,true);
-  for(const[c,a]of Object.entries(PPTO.fijos))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m]);
+  for(const[c,a]of Object.entries(PPTO.fijos))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m],false,false,c,'gasto');
   html+=fila('Subtotal fijos',fijR,fijP,true);
   html+=fila('Gastos variables','','',false,true);
-  for(const[c,a]of Object.entries(PPTO.variables))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m]);
+  for(const[c,a]of Object.entries(PPTO.variables))html+=fila(c,sumCat(txs,c,m,'gasto'),a[m],false,false,c,'gasto');
   html+=fila('Subtotal variables',varR,varP,true);
   html+=fila('Flujo neto del mes',netoR,netoP,true);
   document.getElementById('res-tabla').innerHTML=html;
+}
+
+function resumenDetalleCat(evt,cat,tipo){
+  const m=mesRes;
+  const list=getAll().filter(t=>t.cat===cat&&t.mes===m&&t.tipo===tipo).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const x=evt&&evt.clientX!=null?evt.clientX:window.innerWidth/2;
+  const y=evt&&evt.clientY!=null?evt.clientY:200;
+  if(!list.length){
+    showDashVin(`<div style="font-size:11px;color:var(--text2);">Sin movimientos en ${cat}</div>`,x,y,1800);
+    return;
+  }
+  const total=list.reduce((s,t)=>s+t.monto,0);
+  let html=`<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">${cat} · ${list.length} ${list.length===1?'mov':'movs'} · ${clp(total)}</div>`;
+  const shown=list.slice(0,8);
+  for(const t of shown){
+    html+=`<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:11px;">`+
+      `<span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${t.desc}</span>`+
+      `<span style="font-family:var(--mono);color:var(--text);flex-shrink:0;">${clp(t.monto)}</span></div>`;
+  }
+  if(list.length>shown.length)html+=`<div style="font-size:10px;color:var(--text3);margin-top:6px;">y ${list.length-shown.length} más</div>`;
+  const ms=Math.min(6000,Math.max(2800,1500+list.length*450));
+  showDashVin(html,x,y,ms);
 }
 
 // ══════════════════════════════════════
