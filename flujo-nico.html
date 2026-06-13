@@ -336,6 +336,46 @@
     .rzp-bar{height:100%;border-radius:5px;width:0;}
     .rzp-bar.over{animation:barPulse 1.8s ease infinite;}
 
+    /* ── ESTADO DE RESULTADOS ── */
+    .er-header{padding:calc(env(safe-area-inset-top,0px) + 20px) 20px 0;max-width:480px;margin:0 auto;}
+    .er-eyebrow{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    .er-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .er-month{font-size:20px;font-weight:600;letter-spacing:-.02em;text-align:center;flex:1;}
+    .er-month-sub{font-size:11px;color:var(--text2);font-weight:400;}
+    .er-nav-btn{width:34px;height:34px;border-radius:50%;background:var(--s1);border:1px solid var(--border2);color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+    .er-nav-btn:active{background:var(--s3);color:var(--text);}
+    .er-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+    .er-body{padding:0 16px 24px;max-width:480px;margin:0 auto;}
+    .er-col-hdr{display:flex;align-items:center;gap:8px;padding:8px 0 6px;border-bottom:1px solid var(--border2);margin-bottom:2px;}
+    .er-col-name{flex:1;font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
+    .er-col-v{width:76px;text-align:right;font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
+    .er-section-hdr{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;padding:14px 0 6px;display:flex;align-items:center;gap:8px;}
+    .er-section-hdr::after{content:'';flex:1;height:1px;background:var(--gold);opacity:.2;}
+    .er-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s;}
+    .er-row:last-of-type,.er-row:last-child{border-bottom:none;}
+    .er-row:active{opacity:.5;}
+    .er-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .er-name{flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .er-real{width:76px;text-align:right;font-size:13px;font-family:var(--mono);color:var(--text);}
+    .er-ppto{width:76px;text-align:right;font-size:12px;font-family:var(--mono);color:var(--text3);}
+    .er-subtotal{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:2px solid var(--border2);background:none;}
+    .er-sub-spc{width:17px;flex-shrink:0;}
+    .er-sub-name{flex:1;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;}
+    .er-sub-real{width:76px;text-align:right;font-size:13px;font-weight:700;font-family:var(--mono);}
+    .er-sub-ppto{width:76px;text-align:right;font-size:12px;font-family:var(--mono);color:var(--text3);}
+    .er-total-gastos{display:flex;align-items:center;gap:10px;padding:9px 0;margin-top:6px;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);}
+    .er-tg-name{flex:1;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;}
+    .er-tg-real{width:76px;text-align:right;font-size:13px;font-weight:700;font-family:var(--mono);}
+    .er-tg-ppto{width:76px;text-align:right;font-size:12px;font-family:var(--mono);color:var(--text3);}
+    .er-resultado{margin:16px 0 0;padding:18px 16px;background:var(--s1);border:1px solid var(--border2);border-radius:18px;}
+    .er-res-eyebrow{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+    .er-res-main{display:flex;justify-content:space-between;align-items:baseline;}
+    .er-res-label{font-size:13px;color:var(--text2);}
+    .er-res-val{font-size:32px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em;}
+    .er-res-val.pos{color:var(--green);}
+    .er-res-val.neg{color:var(--red);}
+    .er-res-meta{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:6px;}
+
     /* ── TOAST ── */
     .toast{
       position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);
@@ -682,42 +722,19 @@
 </div>
 
 <!-- ══════════ RESUMEN ══════════ -->
-<div id="s-resumen" class="screen" style="position:relative;">
-  <div class="wrap">
-    <div class="s-header res-header-row">
+<div id="s-resumen" class="screen">
+  <div class="er-header">
+    <div class="er-eyebrow">Estado de resultados</div>
+    <div class="er-nav-row">
+      <button class="er-nav-btn" onclick="cambiarMesRes(-1)">&#8249;</button>
       <div>
-        <div class="s-label">Análisis mensual</div>
-        <div class="s-title">Resumen</div>
+        <div class="er-month" id="er-month">Mayo 2026</div>
       </div>
-      <button class="btn-add-res" onclick="abrirModalAgregar()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nuevo
-      </button>
+      <button class="er-nav-btn" onclick="cambiarMesRes(1)">&#8250;</button>
     </div>
   </div>
-  <div class="rzh-card">
-    <div class="rzh-nav">
-      <button class="rzh-nav-btn" onclick="cambiarMesRes(-1)">&#8249;</button>
-      <button class="rzh-nav-btn" onclick="cambiarMesRes(1)">&#8250;</button>
-    </div>
-    <div class="rzh-eyebrow" id="res-eyebrow">Saldo estimado</div>
-    <div class="rzh-amount" id="res-saldo">—</div>
-    <div class="rzh-sub" id="res-sub">Mayo 2026</div>
-  </div>
-  <div id="res-alert-wrap"></div>
-  <div class="rzs-grid">
-    <div class="rzs-card"><div class="rzs-label">Ingresos</div><div class="rzs-val c-green" id="res-ing">—</div><div class="rzs-sub" id="res-ing-sub">—</div></div>
-    <div class="rzs-card"><div class="rzs-label">Gastos</div><div class="rzs-val c-red" id="res-gas">—</div><div class="rzs-sub" id="res-gas-sub">—</div></div>
-    <div class="rzs-card"><div class="rzs-label">Flujo neto</div><div class="rzs-val" id="res-neto">—</div><div class="rzs-sub">del mes</div></div>
-    <div class="rzs-card"><div class="rzs-label">Por gastar</div><div class="rzs-val c-gold" id="res-disp">—</div><div class="rzs-sub">del presupuesto</div></div>
-  </div>
-  <div class="rzsec"><div class="rzsec-line"></div><div class="rzsec-label">Gastos variables</div><div class="rzsec-line"></div></div>
-  <div class="rzcard" id="res-var-bars"></div>
-  <div class="rzsec"><div class="rzsec-line"></div><div class="rzsec-label">Gastos fijos</div><div class="rzsec-line"></div></div>
-  <div class="rzcard" id="res-fij-bars"></div>
-  <div class="rzsec"><div class="rzsec-line"></div><div class="rzsec-label">Ingresos</div><div class="rzsec-line"></div></div>
-  <div class="rzcard" id="res-ing-bars"></div>
-  <div style="height:24px;"></div>
+  <div id="res-alert-wrap" style="padding:0 16px;max-width:480px;margin:0 auto;"></div>
+  <div class="er-body" id="er-body"></div>
 </div>
 
 <!-- ══════════ MODAL DETALLE CAT ══════════ -->
@@ -1393,84 +1410,101 @@ function confirmarBorrar(id,desc){if(confirm(`¿Eliminar "${desc}"?`)){deleteTx(
 function cambiarMesRes(d){mesRes=Math.max(0,Math.min(7,mesRes+d));renderResumen();}
 function renderResumen(){
   const txs=getAll();const m=mesRes;
-  let sI=getSaldoIni();
-  for(let i=0;i<m;i++){
-    const pendPrev=txs.filter(t=>t.pendiente===true&&t.mes===i&&t.tipo==='gasto').reduce((s,t)=>s+t.monto,0);
-    sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto')-pendPrev;
-  }
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
   const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
   const pendGasto=txs.filter(t=>t.pendiente===true&&t.mes===m&&t.tipo==='gasto').reduce((s,t)=>s+t.monto,0);
   const gasR=fijR+varR+pendGasto;
   const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[m],0);
-  const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
+  const fijP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0);
+  const varP=Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
+  const gasP=fijP+varP;
   const netoR=ingR-gasR;
-  const saldoEst=sI+netoR;
-  const porGastar=Math.max(gasP-gasR,0);
+  const netoP=ingP-gasP;
 
   const today=new Date();
-  const isCurrent=today.getFullYear()===2026&&today.getMonth()>=4&&today.getMonth()<=11&&(today.getMonth()-4)===m;
-
-  document.getElementById('res-eyebrow').textContent='Saldo estimado · '+MONTHS_FULL[m].split(' ')[0];
-  const $s=document.getElementById('res-saldo');
-  $s.textContent=clp(saldoEst);$s.className='rzh-amount'+(saldoEst<0?' neg':'');
-  document.getElementById('res-sub').textContent=MONTHS_FULL[m]+(isCurrent?' · en curso':' · cerrado');
+  const isCurrent=today.getFullYear()===2026&&today.getMonth()>=4&&(today.getMonth()-4)===m;
+  const mes=MONTHS_FULL[m];
+  document.getElementById('er-month').innerHTML=mes.split(' ')[0]+' <span class="er-month-sub">'+mes.split(' ')[1]+(isCurrent?' · en curso':' · cerrado')+'</span>';
 
   const pctG=gasP?Math.round(gasR/gasP*100):0;
   const $al=document.getElementById('res-alert-wrap');
   if(pctG>100)$al.innerHTML=`<div class="alert danger"><div class="alert-dot"></div><div>Llevas el <strong>${pctG}%</strong> del presupuesto de gastos.</div></div>`;
   else if(pctG>80)$al.innerHTML=`<div class="alert warn"><div class="alert-dot"></div><div>Llevas el <strong>${pctG}%</strong> del presupuesto. Queda poco margen.</div></div>`;
-  else if(netoR>0)$al.innerHTML=`<div class="alert ok"><div class="alert-dot"></div><div>Flujo positivo de <strong>${clp(netoR)}</strong> este mes.</div></div>`;
   else $al.innerHTML='';
 
-  document.getElementById('res-ing').textContent=clp(ingR);
-  document.getElementById('res-ing-sub').textContent='Ppto '+clp(ingP);
-  document.getElementById('res-gas').textContent=clp(gasR);
-  document.getElementById('res-gas-sub').textContent='Ppto '+clp(gasP);
-  const $n=document.getElementById('res-neto');
-  $n.textContent=clp(netoR);$n.className='rzs-val'+(netoR>=0?' c-green':' c-red');
-  document.getElementById('res-disp').textContent=clp(porGastar);
-
-  document.getElementById('res-var-bars').innerHTML=makeResBars(txs,PPTO.variables,m,'gasto');
-  document.getElementById('res-fij-bars').innerHTML=makeResBars(txs,PPTO.fijos,m,'gasto');
-  document.getElementById('res-ing-bars').innerHTML=makeResBars(txs,PPTO.ingresos,m,'ingreso');
-
-  if(!REDUCED){
-    animCount($s,saldoEst);
-    animCount(document.getElementById('res-ing'),ingR);
-    animCount(document.getElementById('res-gas'),gasR);
-    animCount(document.getElementById('res-neto'),netoR);
-    animCount(document.getElementById('res-disp'),porGastar);
-    setTimeout(animResBars,60);
+  function erRows(grupo,tipo){
+    let h='';
+    for(const[cat,arr]of Object.entries(grupo)){
+      const real=sumCat(txs,cat,m,tipo),ppto=arr[m];
+      if(ppto===0&&real===0)continue;
+      const col=CAT_COLOR[cat]||'#6B7280';
+      const isOver=tipo==='gasto'&&ppto>0&&real>ppto;
+      const realCol=tipo==='ingreso'?(real>0?'var(--green)':'var(--text)'):(isOver?'var(--red)':'var(--text)');
+      const sc=String(cat).replace(/'/g,"\\'");
+      h+=`<div class="er-row" onclick="abrirDetalleCat('${sc}','${tipo}',${m})">
+        <div class="er-dot" style="background:${col};"></div>
+        <span class="er-name">${cat}</span>
+        <span class="er-real" style="color:${realCol};">${clp(real)}</span>
+        <span class="er-ppto">${clp(ppto)}</span>
+      </div>`;
+    }
+    return h||`<div style="color:var(--text3);font-size:12px;padding:8px 17px;">Sin movimientos</div>`;
   }
-}
-function makeResBars(txs,grupo,m,tipo){
+
   let html='';
-  for(const[cat,arr]of Object.entries(grupo)){
-    const real=sumCat(txs,cat,m,tipo),ppto=arr[m];
-    if(ppto===0&&real===0)continue;
-    const rawP=ppto?Math.round(real/ppto*100):(real>0?100:0);
-    const p=Math.min(rawP,100);
-    const isOver=ppto>0&&real>ppto;
-    const col=CAT_COLOR[cat]||'#6B7280';
-    const barCol=tipo==='ingreso'?col:fillColor(rawP);
-    const sc=String(cat).replace(/'/g,"\\'");
-    html+=`<div class="rzp-item" onclick="abrirDetalleCat('${sc}','${tipo}',${m})">`+
-      `<div class="rzp-ic" style="background:${col};"></div>`+
-      `<div class="rzp-body">`+
-        `<div class="rzp-top"><span class="rzp-name">${cat}</span><span class="rzp-nums">${clp(real)} / ${clp(ppto)}</span></div>`+
-        `<div class="rzp-track"><div class="rzp-bar${isOver?' over':''}" style="width:${REDUCED?p:0}%;background:${barCol};" data-target="${p}"></div></div>`+
-      `</div></div>`;
-  }
-  return html||'<div style="color:var(--text3);font-size:13px;padding:12px 2px;">Sin movimientos este mes</div>';
-}
-function animResBars(){
-  if(REDUCED)return;
-  document.querySelectorAll('.rzp-bar[data-target]').forEach(function(b){
-    const t=Number(b.dataset.target);
-    requestAnimationFrame(function(){b.style.transition='width 600ms cubic-bezier(0,.55,.45,1)';b.style.width=t+'%';});
-  });
+  html+=`<div class="er-col-hdr"><span class="er-col-name">Concepto</span><span class="er-col-v">Real</span><span class="er-col-v">Ppto</span></div>`;
+
+  // INGRESOS
+  html+=`<div class="er-section-hdr">Ingresos</div>`;
+  html+=erRows(PPTO.ingresos,'ingreso');
+  html+=`<div class="er-subtotal">
+    <span class="er-sub-spc"></span>
+    <span class="er-sub-name">Total ingresos</span>
+    <span class="er-sub-real" style="color:var(--green);" id="er-ing">${clp(ingR)}</span>
+    <span class="er-sub-ppto">${clp(ingP)}</span>
+  </div>`;
+
+  // GASTOS FIJOS
+  html+=`<div class="er-section-hdr">Gastos fijos</div>`;
+  html+=erRows(PPTO.fijos,'gasto');
+  html+=`<div class="er-subtotal">
+    <span class="er-sub-spc"></span>
+    <span class="er-sub-name">Total fijos</span>
+    <span class="er-sub-real" style="color:${fijR>fijP?'var(--red)':'var(--text)'};">${clp(fijR)}</span>
+    <span class="er-sub-ppto">${clp(fijP)}</span>
+  </div>`;
+
+  // GASTOS VARIABLES
+  html+=`<div class="er-section-hdr">Gastos variables</div>`;
+  html+=erRows(PPTO.variables,'gasto');
+  html+=`<div class="er-subtotal">
+    <span class="er-sub-spc"></span>
+    <span class="er-sub-name">Total variables</span>
+    <span class="er-sub-real" style="color:${varR>varP?'var(--red)':'var(--text)'};">${clp(varR)}</span>
+    <span class="er-sub-ppto">${clp(varP)}</span>
+  </div>`;
+
+  // Total gastos
+  html+=`<div class="er-total-gastos">
+    <span class="er-sub-spc"></span>
+    <span class="er-tg-name">Total gastos</span>
+    <span class="er-tg-real" style="color:${gasR>gasP?'var(--red)':'var(--text)'};">${clp(gasR)}</span>
+    <span class="er-tg-ppto">${clp(gasP)}</span>
+  </div>`;
+
+  // Resultado neto
+  html+=`<div class="er-resultado">
+    <div class="er-res-eyebrow">Resultado del mes</div>
+    <div class="er-res-main">
+      <span class="er-res-label">Flujo neto</span>
+      <span class="er-res-val ${netoR>=0?'pos':'neg'}" id="er-neto">${clp(netoR)}</span>
+    </div>
+    <div class="er-res-meta">Presupuestado: ${clp(netoP)}</div>
+  </div>`;
+
+  document.getElementById('er-body').innerHTML=html;
+  if(!REDUCED)animCount(document.getElementById('er-neto'),netoR);
 }
 
 // ══════════════════════════════════════
