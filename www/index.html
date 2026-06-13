@@ -300,6 +300,42 @@
     .m-nav-btn:active{background:var(--s3);}
     .m-nav-title{font-size:18px;font-weight:600;letter-spacing:-0.02em;}
 
+    /* ── RESUMEN PREMIUM ── */
+    .rzh-card{position:relative;overflow:hidden;margin:4px 16px 16px;padding:24px 20px 20px;border:1px solid var(--border2);border-radius:22px;background:linear-gradient(135deg,#1C1813 0%,#221E19 55%,#15120E 100%);}
+    .rzh-card::before{content:'';position:absolute;top:-70px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(201,168,90,0.18) 0%,transparent 70%);}
+    .rzh-card::after{content:'';position:absolute;bottom:-50px;left:-50px;width:170px;height:170px;background:radial-gradient(circle,rgba(201,168,90,0.07) 0%,transparent 70%);}
+    .rzh-nav{position:absolute;top:18px;right:16px;display:flex;gap:6px;z-index:1;}
+    .rzh-nav-btn{width:30px;height:30px;border-radius:50%;background:rgba(245,245,243,0.05);border:1px solid var(--border2);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+    .rzh-nav-btn:active{background:rgba(245,245,243,0.12);color:var(--text);}
+    .rzh-eyebrow{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:7px;position:relative;}
+    .rzh-eyebrow::before{content:'';width:20px;height:1px;background:var(--gold);opacity:.6;}
+    .rzh-amount{font-size:40px;font-weight:700;letter-spacing:-1.5px;line-height:1;font-family:var(--mono);position:relative;background:linear-gradient(135deg,#FFFFFF 0%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .rzh-amount.neg{background:linear-gradient(135deg,#FFFFFF 0%,var(--red) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .rzh-sub{font-size:12px;color:var(--text2);margin-top:9px;position:relative;}
+    .rzs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;}
+    .rzs-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:15px 14px;}
+    .rzs-label{font-size:10px;color:var(--text2);font-weight:500;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px;}
+    .rzs-val{font-size:17px;font-weight:600;letter-spacing:-.4px;font-family:var(--mono);color:var(--text);}
+    .rzs-val.c-green{color:var(--green);}
+    .rzs-val.c-red{color:var(--red);}
+    .rzs-val.c-gold{color:var(--gold);}
+    .rzs-sub{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--mono);}
+    .rzsec{display:flex;align-items:center;gap:10px;margin:22px 16px 10px;}
+    .rzsec-line{flex:1;height:1px;background:var(--border);}
+    .rzsec-label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1.2px;white-space:nowrap;}
+    .rzcard{margin:0 16px;background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:4px 16px;}
+    .rzp-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s;}
+    .rzp-item:last-child{border-bottom:none;}
+    .rzp-item:active{opacity:.6;}
+    .rzp-ic{width:34px;height:34px;border-radius:10px;flex-shrink:0;opacity:.92;}
+    .rzp-body{flex:1;min-width:0;}
+    .rzp-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:7px;}
+    .rzp-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .rzp-nums{font-size:11px;color:var(--text2);font-family:var(--mono);flex-shrink:0;}
+    .rzp-track{height:5px;background:rgba(245,245,243,0.06);border-radius:5px;overflow:hidden;}
+    .rzp-bar{height:100%;border-radius:5px;width:0;}
+    .rzp-bar.over{animation:barPulse 1.8s ease infinite;}
+
     /* ── TOAST ── */
     .toast{
       position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);
@@ -659,28 +695,28 @@
       </button>
     </div>
   </div>
-  <div class="hero">
-    <div class="hero-label">Gastos del mes</div>
-    <div class="hero-amount" id="res-hero-amt">—</div>
-    <div class="hero-meta">
-      <div class="hero-month" id="res-mes-nombre">Mayo 2026</div>
-      <div class="hero-nav">
-        <button class="hero-nav-btn" onclick="cambiarMesRes(-1)">&#8249;</button>
-        <button class="hero-nav-btn" onclick="cambiarMesRes(1)">&#8250;</button>
-      </div>
+  <div class="rzh-card">
+    <div class="rzh-nav">
+      <button class="rzh-nav-btn" onclick="cambiarMesRes(-1)">&#8249;</button>
+      <button class="rzh-nav-btn" onclick="cambiarMesRes(1)">&#8250;</button>
     </div>
+    <div class="rzh-eyebrow" id="res-eyebrow">Saldo estimado</div>
+    <div class="rzh-amount" id="res-saldo">—</div>
+    <div class="rzh-sub" id="res-sub">Mayo 2026</div>
   </div>
   <div id="res-alert-wrap"></div>
-  <div class="metrics">
-    <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val pos" id="res-ing">—</div><div class="metric-sub" id="res-ing-sub">—</div></div>
-    <div class="metric"><div class="metric-label">Flujo neto</div><div class="metric-val" id="res-neto">—</div><div class="metric-sub">del mes</div></div>
+  <div class="rzs-grid">
+    <div class="rzs-card"><div class="rzs-label">Ingresos</div><div class="rzs-val c-green" id="res-ing">—</div><div class="rzs-sub" id="res-ing-sub">—</div></div>
+    <div class="rzs-card"><div class="rzs-label">Gastos</div><div class="rzs-val c-red" id="res-gas">—</div><div class="rzs-sub" id="res-gas-sub">—</div></div>
+    <div class="rzs-card"><div class="rzs-label">Flujo neto</div><div class="rzs-val" id="res-neto">—</div><div class="rzs-sub">del mes</div></div>
+    <div class="rzs-card"><div class="rzs-label">Por gastar</div><div class="rzs-val c-gold" id="res-disp">—</div><div class="rzs-sub">del presupuesto</div></div>
   </div>
-  <div class="sec">Gastos variables</div>
-  <div id="res-var-rows"></div>
-  <div class="sec">Gastos fijos</div>
-  <div id="res-fij-rows"></div>
-  <div class="sec">Ingresos</div>
-  <div id="res-ing-rows"></div>
+  <div class="rzsec"><div class="rzsec-line"></div><div class="rzsec-label">Gastos variables</div><div class="rzsec-line"></div></div>
+  <div class="rzcard" id="res-var-bars"></div>
+  <div class="rzsec"><div class="rzsec-line"></div><div class="rzsec-label">Gastos fijos</div><div class="rzsec-line"></div></div>
+  <div class="rzcard" id="res-fij-bars"></div>
+  <div class="rzsec"><div class="rzsec-line"></div><div class="rzsec-label">Ingresos</div><div class="rzsec-line"></div></div>
+  <div class="rzcard" id="res-ing-bars"></div>
   <div style="height:24px;"></div>
 </div>
 
@@ -1356,17 +1392,30 @@ function confirmarBorrar(id,desc){if(confirm(`¿Eliminar "${desc}"?`)){deleteTx(
 // ══════════════════════════════════════
 function cambiarMesRes(d){mesRes=Math.max(0,Math.min(7,mesRes+d));renderResumen();}
 function renderResumen(){
-  document.getElementById('res-mes-nombre').textContent=MONTHS_FULL[mesRes];
   const txs=getAll();const m=mesRes;
+  let sI=getSaldoIni();
+  for(let i=0;i<m;i++){
+    const pendPrev=txs.filter(t=>t.pendiente===true&&t.mes===i&&t.tipo==='gasto').reduce((s,t)=>s+t.monto,0);
+    sI+=sumGrupo(txs,PPTO.ingresos,i,'ingreso')-sumGrupo(txs,PPTO.fijos,i,'gasto')-sumGrupo(txs,PPTO.variables,i,'gasto')-pendPrev;
+  }
   const ingR=sumGrupo(txs,PPTO.ingresos,m,'ingreso');
   const fijR=sumGrupo(txs,PPTO.fijos,m,'gasto');
   const varR=sumGrupo(txs,PPTO.variables,m,'gasto');
+  const pendGasto=txs.filter(t=>t.pendiente===true&&t.mes===m&&t.tipo==='gasto').reduce((s,t)=>s+t.monto,0);
+  const gasR=fijR+varR+pendGasto;
   const ingP=Object.values(PPTO.ingresos).reduce((s,a)=>s+a[m],0);
   const gasP=Object.values(PPTO.fijos).reduce((s,a)=>s+a[m],0)+Object.values(PPTO.variables).reduce((s,a)=>s+a[m],0);
-  const gasR=fijR+varR;
   const netoR=ingR-gasR;
+  const saldoEst=sI+netoR;
+  const porGastar=Math.max(gasP-gasR,0);
 
-  document.getElementById('res-hero-amt').textContent=clp(gasR);
+  const today=new Date();
+  const isCurrent=today.getFullYear()===2026&&today.getMonth()>=4&&today.getMonth()<=11&&(today.getMonth()-4)===m;
+
+  document.getElementById('res-eyebrow').textContent='Saldo estimado · '+MONTHS_FULL[m].split(' ')[0];
+  const $s=document.getElementById('res-saldo');
+  $s.textContent=clp(saldoEst);$s.className='rzh-amount'+(saldoEst<0?' neg':'');
+  document.getElementById('res-sub').textContent=MONTHS_FULL[m]+(isCurrent?' · en curso':' · cerrado');
 
   const pctG=gasP?Math.round(gasR/gasP*100):0;
   const $al=document.getElementById('res-alert-wrap');
@@ -1377,20 +1426,51 @@ function renderResumen(){
 
   document.getElementById('res-ing').textContent=clp(ingR);
   document.getElementById('res-ing-sub').textContent='Ppto '+clp(ingP);
+  document.getElementById('res-gas').textContent=clp(gasR);
+  document.getElementById('res-gas-sub').textContent='Ppto '+clp(gasP);
   const $n=document.getElementById('res-neto');
-  $n.textContent=clp(netoR);$n.className='metric-val'+(netoR>=0?' pos':' neg');
+  $n.textContent=clp(netoR);$n.className='rzs-val'+(netoR>=0?' c-green':' c-red');
+  document.getElementById('res-disp').textContent=clp(porGastar);
 
-  document.getElementById('res-var-rows').innerHTML=makeRows(txs,PPTO.variables,m,'gasto');
-  document.getElementById('res-fij-rows').innerHTML=makeRows(txs,PPTO.fijos,m,'gasto');
-  document.getElementById('res-ing-rows').innerHTML=makeRows(txs,PPTO.ingresos,m,'ingreso');
+  document.getElementById('res-var-bars').innerHTML=makeResBars(txs,PPTO.variables,m,'gasto');
+  document.getElementById('res-fij-bars').innerHTML=makeResBars(txs,PPTO.fijos,m,'gasto');
+  document.getElementById('res-ing-bars').innerHTML=makeResBars(txs,PPTO.ingresos,m,'ingreso');
 
   if(!REDUCED){
-    staggerMetrics();
-    animCount(document.getElementById('res-hero-amt'),gasR);
+    animCount($s,saldoEst);
     animCount(document.getElementById('res-ing'),ingR);
+    animCount(document.getElementById('res-gas'),gasR);
     animCount(document.getElementById('res-neto'),netoR);
-    setTimeout(animBars,60);
+    animCount(document.getElementById('res-disp'),porGastar);
+    setTimeout(animResBars,60);
   }
+}
+function makeResBars(txs,grupo,m,tipo){
+  let html='';
+  for(const[cat,arr]of Object.entries(grupo)){
+    const real=sumCat(txs,cat,m,tipo),ppto=arr[m];
+    if(ppto===0&&real===0)continue;
+    const rawP=ppto?Math.round(real/ppto*100):(real>0?100:0);
+    const p=Math.min(rawP,100);
+    const isOver=ppto>0&&real>ppto;
+    const col=CAT_COLOR[cat]||'#6B7280';
+    const barCol=tipo==='ingreso'?col:fillColor(rawP);
+    const sc=String(cat).replace(/'/g,"\\'");
+    html+=`<div class="rzp-item" onclick="abrirDetalleCat('${sc}','${tipo}',${m})">`+
+      `<div class="rzp-ic" style="background:${col};"></div>`+
+      `<div class="rzp-body">`+
+        `<div class="rzp-top"><span class="rzp-name">${cat}</span><span class="rzp-nums">${clp(real)} / ${clp(ppto)}</span></div>`+
+        `<div class="rzp-track"><div class="rzp-bar${isOver?' over':''}" style="width:${REDUCED?p:0}%;background:${barCol};" data-target="${p}"></div></div>`+
+      `</div></div>`;
+  }
+  return html||'<div style="color:var(--text3);font-size:13px;padding:12px 2px;">Sin movimientos este mes</div>';
+}
+function animResBars(){
+  if(REDUCED)return;
+  document.querySelectorAll('.rzp-bar[data-target]').forEach(function(b){
+    const t=Number(b.dataset.target);
+    requestAnimationFrame(function(){b.style.transition='width 600ms cubic-bezier(0,.55,.45,1)';b.style.width=t+'%';});
+  });
 }
 
 // ══════════════════════════════════════
