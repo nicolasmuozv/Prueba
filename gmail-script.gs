@@ -46,9 +46,12 @@ const PARSERS = [
       'subject:"Compra con Tarjeta de Crédito"',
       'subject:"Compra con Tarjeta de Débito"',
       'subject:"Comprobante de Transferencia a terceros"',
+      'subject:"Transferencia a Terceros"',
       'subject:"Transferencia realizada"',
       'subject:"Has recibido una transferencia de fondos"',
       'subject:"Transferencia recibida"',
+      'subject:"Transferencia de Fondos"',
+      'subject:"Aviso de Transferencia"',
       'subject:"Abono en Cuenta"',
     ],
     parse: function(subject, body, emailFecha, emailDate, id) {
@@ -62,14 +65,18 @@ const PARSERS = [
         const d = body.match(/en\s+([A-ZÁÉÍÓÚÜÑ][A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ.,&'-]+?)\s+el\s+\d{2}\/\d{2}/i);
         if (m) return { id: id, fecha: fechaFromBodySafe(body, emailFecha, emailDate), desc: d ? clean(d[1]) : 'Compra con tarjeta', monto: parseMonto(m[1]), tipo: 'gasto' };
       }
-      if (/comprobante de transferencia|transferencia a terceros|transferencia realizada/i.test(subject)) {
-        const m = body.match(/Monto[\s:$]*([0-9.,]+)/i);
+      // Salientes primero: "a terceros" puede contener "transferencia de fondos"
+      if (/transferencia\s+(?:de\s+fondos\s+)?a\s+terceros|comprobante de transferencia|transferencia realizada|transferencia enviada/i.test(subject)) {
+        const m = body.match(/Monto[\s:$]*([0-9.,]+)/i)
+               || body.match(/\$\s*([\d.,]+)/);
         const d = body.match(/(?:Nombre|Destinatario|Beneficiario)[:\s]+([A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ.,]+)/i);
         if (m) return { id: id, fecha: emailFecha, desc: d ? 'TRF → ' + clean(d[1]) : 'Transferencia saliente', monto: parseMonto(m[1]), tipo: 'gasto' };
       }
-      if (/recibido una transferencia|transferencia recibida/i.test(subject)) {
+      // Entrantes: incluye "Aviso de Transferencia" y "Transferencia de Fondos" genéricos
+      if (/recibido una transferencia|transferencia recibida|aviso de transferencia|transferencia de fondos/i.test(subject)) {
         const m = body.match(/Monto transferido[:\s$]*([0-9.,]+)/i)
-               || body.match(/Monto[:\s$]*([0-9.,]+)/i);
+               || body.match(/Monto[:\s$]*([0-9.,]+)/i)
+               || body.match(/\$\s*([\d.,]+)/);
         const d = body.match(/transferencia de fondos de\s+([A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ.,]+?)[\r\n]/i)
                || body.match(/de\s+([A-Z][A-Za-z0-9 ÁÉÍÓÚÜÑáéíóúüñ.,]+?)\s+(?:Monto|RUT|por)/i);
         if (m) return { id: id, fecha: emailFecha, desc: d ? 'TRF ← ' + clean(d[1]) : 'Transferencia entrante', monto: parseMonto(m[1]), tipo: 'ingreso' };
@@ -91,6 +98,9 @@ const PARSERS = [
       'subject:"Cargo realizado"',
       'subject:"Transferencia enviada"',
       'subject:"Transferencia recibida"',
+      'subject:"Aviso de transferencia"',
+      'subject:"Comprobante de transferencia"',
+      'subject:"Transferencia de fondos"',
     ],
     parse: function(subject, body, emailFecha, emailDate, id) {
       // TODO: validar con email real — regex provisionales
@@ -104,9 +114,11 @@ const PARSERS = [
         const d = body.match(/(?:destinatario|nombre)[:\s]+([^\r\n]{2,50})/i);
         if (m) return { id: id, fecha: emailFecha, desc: d ? 'TRF → ' + clean(d[1]) : 'Transferencia BCI', monto: parseMonto(m[1]), tipo: 'gasto' };
       }
-      if (/transferencia recibida/i.test(subject)) {
-        const m = body.match(/monto[:\s]*\$?\s*([\d.,]+)/i);
-        const d = body.match(/(?:origen|remitente|nombre)[:\s]+([^\r\n]{2,50})/i);
+      // Un email de BCI a este usuario (cliente Banco de Chile) es casi siempre
+      // el comprobante que BCI envía al beneficiario cuando le depositan → ingreso
+      if (/transferencia recibida|aviso de transferencia|comprobante de transferencia|transferencia de fondos/i.test(subject)) {
+        const m = body.match(/monto[:\s]*\$?\s*([\d.,]+)/i) || body.match(/\$\s*([\d.,]+)/);
+        const d = body.match(/(?:origen|remitente|nombre|de)[:\s]+([A-Za-z ÁÉÍÓÚÜÑáéíóúüñ.,]{3,50})/i);
         if (m) return { id: id, fecha: emailFecha, desc: d ? 'TRF ← ' + clean(d[1]) : 'Transferencia recibida BCI', monto: parseMonto(m[1]), tipo: 'ingreso' };
       }
       return null;
@@ -389,7 +401,7 @@ function testParsers() {
       label: 'Banco de Chile – Cargo en Cuenta',
       subject: 'Cargo en Cuenta',
       from: 'notificaciones@enviodigital.bancochile.cl',
-      body: 'Se ha realizado un cargo de $4.600 en FARMACIAS CRUZ VERDE el 01/06/2026.',
+      body: 'Se ha realizado un cargo por $4.600 en FARMACIAS CRUZ VERDE el 01/06/2026.',
       date: new Date('2026-06-01')
     },
     {
@@ -412,6 +424,27 @@ function testParsers() {
       from: 'notificaciones@enviodigital.bancochile.cl',
       body: 'Se realizó el pago de su Tarjeta de Crédito por $200.000.',
       date: new Date('2026-06-01')
+    },
+    {
+      label: 'Banco de Chile – Aviso de Transferencia (ingreso)',
+      subject: 'Aviso de Transferencia de Fondos',
+      from: 'notificaciones@bancochile.cl',
+      body: 'Le informamos que ha recibido una transferencia de fondos de MARIA SOTO PEREZ\nMonto: $80.000\nFecha: 11/06/2026',
+      date: new Date('2026-06-11')
+    },
+    {
+      label: 'Banco de Chile – Transferencia de Fondos a Terceros (gasto)',
+      subject: 'Comprobante Transferencia de Fondos a Terceros',
+      from: 'notificaciones@bancochile.cl',
+      body: 'Comprobante de su transferencia.\nNombre: JUAN PEREZ LOPEZ\nMonto: $45.000\nFecha: 10/06/2026',
+      date: new Date('2026-06-10')
+    },
+    {
+      label: 'BCI – Aviso de transferencia al beneficiario (ingreso)',
+      subject: 'Aviso de transferencia de fondos',
+      from: 'notificacion@bci.cl',
+      body: 'Le informamos que se ha realizado una transferencia a su cuenta.\nNombre: CARLOS MUNOZ DIAZ\nMonto: $120.000',
+      date: new Date('2026-06-12')
     }
   ];
 
