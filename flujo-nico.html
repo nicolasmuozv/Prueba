@@ -964,7 +964,7 @@ const SALDO_INI_MAY=121424;
 
 const PPTO={
   ingresos:{'Sueldo / Honorarios':[1430000,1430000,1430000,1430000,1430000,1430000,1430000,1430000],'Otros ingresos':[480000,333000,333000,333000,333000,333000,333000,333000]},
-  fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Suscripciones':[50,50,50,50,50,50,50,50],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
+  fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Suscripciones':[50000,50000,50000,50000,50000,50000,50000,50000],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
   variables:{'Bencina':[150000,150000,150000,150000,150000,150000,150000,150000],'Alimentación':[60000,60000,60000,60000,60000,60000,60000,60000],'Salidas / Restaurantes':[80000,80000,80000,80000,80000,80000,80000,80000],'Ropa y vestuario':[50000,50000,50000,50000,50000,50000,50000,50000],'Salud / Farmacia':[20000,20000,20000,20000,20000,20000,20000,20000],'Movilización (peaje/uber)':[15000,15000,15000,15000,15000,15000,15000,15000],'Mantención vehículo':[200000,0,0,200000,0,0,200000,0],'Imprevistos':[50000,50000,50000,50000,50000,50000,50000,50000]},
   ahorro:{}
 };
@@ -2472,12 +2472,19 @@ function loadPptoOverrides(){
       Object.assign(PPTO[g],o[g]);
     }
     // Migración: Disney+/Netflix → Suscripciones
+    let mig=false;
     if(PPTO.fijos['Disney+']||PPTO.fijos['Netflix']){
       delete PPTO.fijos['Disney+'];
       delete PPTO.fijos['Netflix'];
-      if(!PPTO.fijos['Suscripciones'])PPTO.fijos['Suscripciones']=[50,50,50,50,50,50,50,50];
-      savePptoState();
+      if(!PPTO.fijos['Suscripciones'])PPTO.fijos['Suscripciones']=[50000,50000,50000,50000,50000,50000,50000,50000];
+      mig=true;
     }
+    // Corregir ppto erróneo de 50 → 50.000
+    if(PPTO.fijos['Suscripciones']&&PPTO.fijos['Suscripciones'].every(v=>v===50)){
+      PPTO.fijos['Suscripciones']=[50000,50000,50000,50000,50000,50000,50000,50000];
+      mig=true;
+    }
+    if(mig)savePptoState();
   }catch(e){}
 }
 
