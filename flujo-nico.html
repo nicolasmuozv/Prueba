@@ -2471,6 +2471,13 @@ function loadPptoOverrides(){
       Object.keys(PPTO[g]).forEach(k=>delete PPTO[g][k]);
       Object.assign(PPTO[g],o[g]);
     }
+    // Migración: Disney+/Netflix → Suscripciones
+    if(PPTO.fijos['Disney+']||PPTO.fijos['Netflix']){
+      delete PPTO.fijos['Disney+'];
+      delete PPTO.fijos['Netflix'];
+      if(!PPTO.fijos['Suscripciones'])PPTO.fijos['Suscripciones']=[50,50,50,50,50,50,50,50];
+      savePptoState();
+    }
   }catch(e){}
 }
 
