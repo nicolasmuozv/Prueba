@@ -593,6 +593,14 @@
     .hist-tipo-btn{flex:1;padding:9px 4px;background:var(--s1);border:none;color:var(--text2);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--sans);letter-spacing:.5px;text-transform:uppercase;transition:background .15s,color .15s;}
     .hist-tipo-btn.active{background:var(--s3);color:var(--text);}
     .hist-tipo-btn.gold{color:var(--gold);}
+    .hist-filtros2{display:flex;gap:8px;margin:0 20px 16px;}
+    .hist-select-wrap{flex:1;position:relative;}
+    .hist-select{width:100%;appearance:none;-webkit-appearance:none;background:var(--s1);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:500;padding:9px 30px 9px 12px;cursor:pointer;border-radius:0;}
+    .hist-select:focus{outline:none;border-color:var(--gold2);}
+    .hist-select-wrap::after{content:'▾';position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:11px;pointer-events:none;}
+    .hist-pend-btn{display:flex;align-items:center;gap:6px;padding:9px 14px;background:var(--s1);border:1px solid var(--border2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans);letter-spacing:.3px;white-space:nowrap;transition:all .15s;}
+    .hist-pend-btn .pend-dot{width:7px;height:7px;border-radius:50%;background:#F59E0B;}
+    .hist-pend-btn.active{background:rgba(245,158,11,0.14);border-color:#F59E0B;color:#F59E0B;}
 
     /* ── AJUSTES ── */
     .set-label{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;padding:22px 20px 8px;}
@@ -747,6 +755,14 @@
     <button class="hist-tipo-btn" id="fb-gasto" onclick="setFiltro('gasto')">Gastos</button>
     <button class="hist-tipo-btn" id="fb-ingreso" onclick="setFiltro('ingreso')">Ingresos</button>
     <button class="hist-tipo-btn gold" onclick="abrirReglas()">Reglas</button>
+  </div>
+  <div class="hist-filtros2">
+    <div class="hist-select-wrap">
+      <select class="hist-select" id="hist-cat-select" onchange="setCatHist(this.value)"></select>
+    </div>
+    <button class="hist-pend-btn" id="hist-pend-btn" onclick="togglePendHist()">
+      <span class="pend-dot"></span>Pendientes
+    </button>
   </div>
   <div id="hist-lista"></div>
 </div>
@@ -996,7 +1012,7 @@ const TX_INICIALES=[
 // ══════════════════════════════════════
 //  ESTADO
 // ══════════════════════════════════════
-let currentTipo='gasto',mesIni=0,mesRes=0,mesHist=0,filtroHist='todo';
+let currentTipo='gasto',mesIni=0,mesRes=0,mesHist=0,filtroHist='todo',catHist='todas',soloPendHist=false;
 const REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 // Re-renderiza el dashboard cuando Chart.js termina de cargar desde el CDN
 window._chartReady=function(){try{const si=document.getElementById('s-inicio');if(si&&si.classList.contains('active')&&typeof renderInicio==='function')renderInicio();const sf=document.getElementById('s-flujo');if(sf&&sf.classList.contains('active')&&typeof renderFlujo==='function')renderFlujo();}catch(e){}};
@@ -1409,12 +1425,33 @@ function guardarTransaccion(){
 // ══════════════════════════════════════
 //  HISTORIAL
 // ══════════════════════════════════════
+function poblarCatSelect(){
+  const sel=document.getElementById('hist-cat-select');
+  if(!sel)return;
+  const cats=Object.keys(CAT_COLOR).filter(c=>c!=='Sin categorizar').sort((a,b)=>a.localeCompare(b));
+  let opts='<option value="todas">Todas las categorías</option>';
+  for(const c of cats)opts+=`<option value="${c.replace(/"/g,'&quot;')}">${c}</option>`;
+  sel.innerHTML=opts;
+  sel.value=catHist;
+}
 function renderHistorial(){
   const lbl=document.getElementById('hist-mes-label');
   if(lbl)lbl.textContent=MONTHS_FULL[mesHist];
-  const txs=getAll().filter(t=>t.mes===mesHist).filter(t=>filtroHist==='todo'||t.tipo===filtroHist).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  poblarCatSelect();
+  const pb=document.getElementById('hist-pend-btn');
+  if(pb)pb.classList.toggle('active',soloPendHist);
+  const txs=getAll().filter(t=>t.mes===mesHist)
+    .filter(t=>filtroHist==='todo'||t.tipo===filtroHist)
+    .filter(t=>catHist==='todas'||t.cat===catHist)
+    .filter(t=>!soloPendHist||t.pendiente===true)
+    .sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const $l=document.getElementById('hist-lista');
-  if(!txs.length){$l.innerHTML='<div class="empty">Sin movimientos en este mes</div>';return;}
+  if(!txs.length){
+    let msg='Sin movimientos en este mes';
+    if(soloPendHist)msg='No hay movimientos pendientes de categorizar';
+    else if(catHist!=='todas')msg='Sin movimientos en «'+catHist+'» este mes';
+    $l.innerHTML='<div class="empty">'+msg+'</div>';return;
+  }
 
   function fechaLabel(fecha){
     const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha||'');
@@ -1470,6 +1507,8 @@ function renderHistorial(){
 }
 function setMesHist(i){mesHist=Math.max(0,Math.min(7,i));renderHistorial();}
 function setFiltro(f){filtroHist=f;['todo','gasto','ingreso'].forEach(x=>document.getElementById('fb-'+x).classList.toggle('active',x===f));renderHistorial();}
+function setCatHist(c){catHist=c;renderHistorial();}
+function togglePendHist(){soloPendHist=!soloPendHist;renderHistorial();}
 function confirmarBorrar(id,desc){if(confirm(`¿Eliminar "${desc}"?`)){deleteTx(id);renderHistorial();showToast('Eliminado');}}
 
 // ══════════════════════════════════════
