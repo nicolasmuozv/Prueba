@@ -964,7 +964,7 @@ const SALDO_INI_MAY=121424;
 
 const PPTO={
   ingresos:{'Sueldo / Honorarios':[1430000,1430000,1430000,1430000,1430000,1430000,1430000,1430000],'Otros ingresos':[480000,333000,333000,333000,333000,333000,333000,333000]},
-  fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Disney+':[10900,10900,10900,10900,10900,10900,10900,10900],'Netflix':[10900,10900,10900,10900,10900,10900,10900,10900],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
+  fijos:{'Arriendo depto Viña':[0,0,0,0,0,0,0,0],'Crédito automotriz':[250000,250000,250000,250000,250000,250000,250000,250000],'Gym':[50000,50000,50000,50000,50000,50000,50000,50000],'Suscripciones':[50,50,50,50,50,50,50,50],'Polla familiar':[30000,30000,30000,30000,30000,30000,30000,30000],'Gasto financiero':[20000,20000,20000,20000,20000,20000,20000,20000],'Corte de pelo':[44000,44000,44000,44000,44000,44000,44000,44000]},
   variables:{'Bencina':[150000,150000,150000,150000,150000,150000,150000,150000],'Alimentación':[60000,60000,60000,60000,60000,60000,60000,60000],'Salidas / Restaurantes':[80000,80000,80000,80000,80000,80000,80000,80000],'Ropa y vestuario':[50000,50000,50000,50000,50000,50000,50000,50000],'Salud / Farmacia':[20000,20000,20000,20000,20000,20000,20000,20000],'Movilización (peaje/uber)':[15000,15000,15000,15000,15000,15000,15000,15000],'Mantención vehículo':[200000,0,0,200000,0,0,200000,0],'Imprevistos':[50000,50000,50000,50000,50000,50000,50000,50000]},
   ahorro:{}
 };
@@ -975,7 +975,7 @@ const CAT_COLOR={
   'Sin categorizar':'#F59E0B',
   'Sueldo / Honorarios':'#6366F1','Otros ingresos':'#C4B5FD',
   'Arriendo depto Viña':'#EC4899','Crédito automotriz':'#F43F5E',
-  'Gym':'#FBBF24','Disney+':'#34D399','Netflix':'#10B981',
+  'Gym':'#FBBF24','Suscripciones':'#10B981',
   'Polla familiar':'#22D3EE','Gasto financiero':'#3B82F6','Corte de pelo':'#CBD5E1',
   'Bencina':'#F97316','Alimentación':'#EAB308',
   'Salidas / Restaurantes':'#84CC16','Ropa y vestuario':'#F472B6',
@@ -1017,7 +1017,15 @@ const REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 // Re-renderiza el dashboard cuando Chart.js termina de cargar desde el CDN
 window._chartReady=function(){try{const si=document.getElementById('s-inicio');if(si&&si.classList.contains('active')&&typeof renderInicio==='function')renderInicio();const sf=document.getElementById('s-flujo');if(sf&&sf.classList.contains('active')&&typeof renderFlujo==='function')renderFlujo();}catch(e){}};
 
-function loadData(){const r=localStorage.getItem('flujoNico2026');if(!r){saveData(TX_INICIALES);return TX_INICIALES;}try{return JSON.parse(r);}catch(e){showToast('Error al leer datos',true);return TX_INICIALES;}}
+function migrarCats(txs){
+  // Disney+/Netflix → Suscripciones
+  let changed=false;
+  for(const t of txs){
+    if(t.cat==='Disney+'||t.cat==='Netflix'){t.cat='Suscripciones';changed=true;}
+  }
+  return changed;
+}
+function loadData(){const r=localStorage.getItem('flujoNico2026');if(!r){saveData(TX_INICIALES);return TX_INICIALES;}try{const d=JSON.parse(r);if(migrarCats(d))saveData(d);return d;}catch(e){showToast('Error al leer datos',true);return TX_INICIALES;}}
 function saveData(t){localStorage.setItem('flujoNico2026',JSON.stringify(t));}
 function getAll(){return loadData();}
 function addTx(t){const a=getAll();a.push(t);saveData(a);}
@@ -2000,8 +2008,11 @@ const DEFAULT_RULES=[
   {k:'bencina',cat:'Bencina',tipo:'gasto'},
   {k:'enex',cat:'Bencina',tipo:'gasto'},
   // Streaming
-  {k:'netflix',cat:'Netflix',tipo:'gasto'},
-  {k:'disney',cat:'Disney+',tipo:'gasto'},
+  {k:'netflix',cat:'Suscripciones',tipo:'gasto'},
+  {k:'disney',cat:'Suscripciones',tipo:'gasto'},
+  {k:'spotify',cat:'Suscripciones',tipo:'gasto'},
+  {k:'hbo',cat:'Suscripciones',tipo:'gasto'},
+  {k:'prime',cat:'Suscripciones',tipo:'gasto'},
   // Gym
   {k:'smartfit',cat:'Gym',tipo:'gasto'},
   {k:'bodytech',cat:'Gym',tipo:'gasto'},
